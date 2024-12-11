@@ -61,6 +61,8 @@ docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/cayanide/my-nl
 ```
 
 
+This will build the image for both `amd64` and `arm64` platforms and push it to GitHub Container Registry.
+
 Screenshots:
 
 ![image](https://github.com/user-attachments/assets/c0ea1a68-339a-4680-8dae-4036b5b1d03c)
@@ -71,7 +73,7 @@ Screenshots:
 <img width="1163" alt="image" src="https://github.com/user-attachments/assets/854ab131-274d-4167-b2e6-bb187aebf703" />
 
 
-This will build the image for both `amd64` and `arm64` platforms and push it to GitHub Container Registry.
+
 
 ## Contributing
 We welcome contributions to improve this project. To contribute:
