@@ -1,22 +1,28 @@
-# Use lightweight Python image
+# Use official slim Python image
 FROM python:3.10-slim
-
-# Set environment vars
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
 
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
+# Install system dependencies for building Python packages like wordcloud
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gcc \
+    build-essential \
+    python3-dev \
+    libfreetype6-dev \
+    libpng-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
+# Copy the source code
 COPY . .
 
-# Expose the port Flask runs on
+# Expose port (e.g., for Flask apps)
 EXPOSE 5000
 
-# Run the app
+# Run the application (adjust as needed)
 CMD ["python", "main.py"]
