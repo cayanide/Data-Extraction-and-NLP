@@ -1,10 +1,14 @@
-# Use official slim Python image
+# Use official slim Python image (lightweight and stable)
 FROM python:3.10-slim
+
+# Set environment variables (good for Docker consistency)
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies for building Python packages like wordcloud
+# Install system dependencies required to build wheels and work with wordcloud
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     gcc \
@@ -14,15 +18,18 @@ RUN apt-get update && \
     libpng-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
+# Upgrade pip first (recommended)
+RUN pip install --upgrade pip
+
+# Copy dependency list and install Python packages
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the source code
+# Copy the entire project into the container
 COPY . .
 
-# Expose port (e.g., for Flask apps)
+# Expose port for web apps (e.g., Flask or FastAPI)
 EXPOSE 5000
 
-# Run the application (adjust as needed)
+# Default command to run your app
 CMD ["python", "main.py"]
