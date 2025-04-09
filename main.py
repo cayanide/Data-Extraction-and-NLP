@@ -1,164 +1,201 @@
 import os
 import pandas as pd
 import requests
-from flask import Flask, request, render_template, send_from_directory, jsonify
+from flask import Flask, request, send_from_directory, jsonify, render_template
 from werkzeug.utils import secure_filename
-from bs4 import BeautifulSoup
-from nltk.tokenize import word_tokenize, sent_tokenize
-import re
-import textstat
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import nltk
 from tqdm import tqdm
+import json
+import re
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait, Select
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+from webdriver_manager.chrome import ChromeDriverManager
+from lxml import html
+from dateutil import parser as dateparser
+from wordcloud import WordCloud
+import time
+import tempfile
 
-# Flask app setup
+nltk.download(['vader_lexicon', 'stopwords', 'punkt'])
+
+# Flask setup
 app = Flask(__name__)
-
-# Folder for file uploads
 UPLOAD_FOLDER = 'static/uploads'
-ARTICLES_FOLDER = 'Articles'
-OUTPUT_FOLDER = 'static/output'  # Folder to store the generated output files
+ARTICLES_FOLDER = 'Products'
+OUTPUT_FOLDER = 'static/output'
+WORDCLOUD_FOLDER = 'static/wordclouds'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(ARTICLES_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
-
-# Allowed extensions for the uploaded file
-ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
+os.makedirs(WORDCLOUD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 
-# Load positive and negative word dictionaries
-def load_dictionaries():
-    with open("MasterDictionary/positive-words.txt", encoding='utf-8') as f:
-        positive_words = set(f.read().split())
-    with open("MasterDictionary/negative-words.txt", encoding='utf-8') as f:
-        negative_words = set(f.read().split())
+ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
 
-    # Ensure all words in dictionaries are lowercase
-    positive_words = {word.lower() for word in positive_words}
-    negative_words = {word.lower() for word in negative_words}
+# Selenium configuration
+custom_cache_dir = os.path.join(tempfile.gettempdir(), "selenium_cache")
+os.makedirs(custom_cache_dir, exist_ok=True)
+os.environ['WDM_LOCAL'] = '1'
+os.environ['WDM_CACHE_DIR'] = custom_cache_dir
 
-    return positive_words, negative_words
+def get_html_sources(url, product_id):
+    options = Options()
+    options.add_argument('--headless --no-sandbox --disable-dev-shm-usage --user-agent=Mozilla/5.0')
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=options)
+    sources = {}
 
-positive_words, negative_words = load_dictionaries()
+    try:
+        driver.get(url)
+        time.sleep(2)
+        sources[f'{product_id}_top'] = driver.page_source
 
-# Load stop words
-def load_stopwords():
-    stopwords = set()
-    for file in os.listdir("StopWords"):
-        with open(os.path.join("StopWords", file), encoding='utf-8', errors='replace') as f:
-            stopwords.update(f.read().split())
-    return stopwords
+        try:
+            select = Select(driver.find_element(By.ID, 'cm-cr-sort-dropdown'))
+            select.select_by_value('recent')
+            time.sleep(6)
+            sources[f'{product_id}_recent'] = driver.page_source
+        except Exception as e:
+            print(f"[WARNING] Couldn't switch to recent reviews: {e}")
+            sources[f'{product_id}_recent'] = sources[f'{product_id}_top']
+    finally:
+        driver.quit()
+    return sources
 
-stopwords = load_stopwords()
+def scrape_reviews_apify(url):
+    XPATH_REVIEWS = '//div[contains(@id,"customer_review-")]'
+    XPATH_RATING = './/i/span/text()'
+    XPATH_DATE = './/span[contains(@data-hook,"review-date")]/text()'
+    XPATH_AUTHOR = './/span[contains(@class,"a-profile-name")]/text()'
+    XPATH_REVIEW_TEXT = './/div[@data-hook="review-collapsed"]/span/text()'
 
-# Function to clean text
-def clean_text(text):
-    tokens = word_tokenize(text.lower())
-    return [word for word in tokens if word.isalnum() and word not in stopwords]
+    product_id = url.split('/dp/')[1].split('/')[0] if '/dp/' in url else 'unknown'
+    sources = get_html_sources(url, product_id)
+    all_reviews = []
 
-# Check if the file has an allowed extension
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    for source_key, page_html in sources.items():
+        parser_obj = html.fromstring(page_html)
+        reviews = parser_obj.xpath(XPATH_REVIEWS)
 
-# Extract content from URLs
-def extract_articles(input_file):
-    data = pd.read_excel(input_file)
+        for review in reviews:
+            try:
+                review_data = {
+                    'author': ''.join(review.xpath(XPATH_AUTHOR)).strip(),
+                    'rating': ''.join(review.xpath(XPATH_RATING)).replace(' out of 5 stars', '').strip(),
+                    'date': dateparser.parse(''.join(review.xpath(XPATH_DATE)).strip().split('on ')[-1]).strftime('%d %b %Y'),
+                    'text': ''.join(review.xpath(XPATH_REVIEW_TEXT)).strip(),
+                    'product_id': product_id,
+                    'link': url
+                }
+                if review_data['text']:
+                    all_reviews.append(review_data)
+            except Exception as e:
+                print(f"[ERROR] Parsing review failed: {e}")
+                continue
 
-    # Check if all articles are already in the ARTICLES_FOLDER
-    existing_files = {f.replace('.txt', '') for f in os.listdir(ARTICLES_FOLDER)}
-    missing_urls = []
+    # Sentiment analysis based on ratings
+    sentiment_counts = {"positive": 0, "neutral": 0, "negative": 0}
+    total_rating = 0.0
+    valid_reviews = 0
 
-    for index, row in tqdm(data.iterrows(), total=data.shape[0], desc="Extracting Articles"):
-        url_id, url = row['URL_ID'], row['URL']
-        if str(url_id) not in existing_files:  # Only scrape if the file doesn't exist
-            missing_urls.append(url_id)
-        else:
-            print(f"Article with URL_ID {url_id} already exists in the folder. Skipping scraping.")
+    for review in all_reviews:
+        try:
+            rating = float(review['rating'])
+            total_rating += rating
+            valid_reviews += 1
 
-    if missing_urls:
-        print(f"Scraping the following URLs: {missing_urls}")
-        for index, row in tqdm(data.iterrows(), total=data.shape[0], desc="Extracting Articles"):
-            url_id, url = row['URL_ID'], row['URL']
-            if str(url_id) in missing_urls:
-                try:
-                    response = requests.get(url)
-                    soup = BeautifulSoup(response.content, 'html.parser')
-                    title = soup.find('title').get_text()
-                    content = ' '.join([p.get_text() for p in soup.find_all('p')])
+            if rating >= 4:
+                sentiment_counts['positive'] += 1
+                review['sentiment'] = 'positive'
+            elif rating == 3:
+                sentiment_counts['neutral'] += 1
+                review['sentiment'] = 'neutral'
+            else:
+                sentiment_counts['negative'] += 1
+                review['sentiment'] = 'negative'
+        except:
+            review['sentiment'] = 'unknown'
 
-                    # Save to text file inside ARTICLES_FOLDER
-                    file_path = os.path.join(ARTICLES_FOLDER, f'{url_id}.txt')
-                    with open(file_path, 'w', encoding='utf-8') as file:
-                        file.write(title + '\n' + content)
-                except Exception as e:
-                    print(f"Error processing {url}: {e}")
-    else:
-        print("All articles are already in the folder. Skipping scraping.")
-
-# Perform text analysis with VADER for sentiment analysis
-def analyze_text(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        text = file.read()
-
-    # Clean text
-    cleaned_text = clean_text(text)
-
-    # Use VADER for sentiment analysis
-    sia = SentimentIntensityAnalyzer()
-    sentiment = sia.polarity_scores(text)  # Analyze the entire text
-    positive_score = sentiment['pos']
-    negative_score = sentiment['neg']
-    polarity_score = sentiment['compound']
-    subjectivity_score = (positive_score + negative_score) / (len(cleaned_text) + 0.000001)  # Subjectivity: ratio of positive/negative words
-
-    # Additional metrics
-    word_count = len(cleaned_text)
-    sentence_count = len(sent_tokenize(text))
-    avg_sentence_length = word_count / sentence_count if sentence_count > 0 else 0
-    complex_word_count = sum(1 for word in cleaned_text if textstat.syllable_count(word) > 2)
-    percentage_complex_words = (complex_word_count / word_count) * 100 if word_count > 0 else 0
-    fog_index = 0.4 * (avg_sentence_length + percentage_complex_words)
-
-    syllables_per_word = sum(textstat.syllable_count(word) for word in cleaned_text) / word_count if word_count > 0 else 0
-    avg_word_length = sum(len(word) for word in cleaned_text) / word_count if word_count > 0 else 0
-
-    personal_pronouns = len(re.findall(r"\b(I|we|my|ours|us)\b", text, re.I))
+    average_rating = round(total_rating / valid_reviews, 2) if valid_reviews else 0.0
+    dominant_sentiment = max(sentiment_counts, key=sentiment_counts.get)
+    accuracy = round((sentiment_counts[dominant_sentiment] / valid_reviews) * 100, 2) if valid_reviews else 0.0
 
     return {
-        'POSITIVE SCORE': positive_score,
-        'NEGATIVE SCORE': negative_score,
-        'POLARITY SCORE': polarity_score,
-        'SUBJECTIVITY SCORE': subjectivity_score,
-        'AVG SENTENCE LENGTH': avg_sentence_length,
-        'PERCENTAGE OF COMPLEX WORDS': percentage_complex_words,
-        'FOG INDEX': fog_index,
-        'COMPLEX WORD COUNT': complex_word_count,
-        'WORD COUNT': word_count,
-        'SYLLABLE PER WORD': syllables_per_word,
-        'PERSONAL PRONOUNS': personal_pronouns,
-        'AVG WORD LENGTH': avg_word_length
+        "product_id": product_id,
+        "product_url": url,
+        "summary": {
+            "total_reviews": len(all_reviews),
+            "average_rating": average_rating,
+            "sentiment_breakdown": sentiment_counts,
+            "overall_sentiment": dominant_sentiment,
+            "accuracy_score": accuracy
+        },
+        "reviews": all_reviews
     }
 
-# Generate results and save to Excel
+def sanitize_filename(text):
+    return re.sub(r'\W+', '_', text.strip())
+
+def extract_products(input_file):
+    data = pd.read_excel(input_file)
+    for _, row in tqdm(data.iterrows(), total=data.shape[0], desc="Extracting"):
+        url_id, url = row['URL_ID'], row['URL']
+        safe_id = sanitize_filename(url_id)
+        json_path = os.path.join(ARTICLES_FOLDER, f'{safe_id}.json')
+
+        if not os.path.exists(json_path):
+            reviews_data = scrape_reviews_apify(url)
+            if reviews_data.get("reviews"):
+                with open(json_path, 'w', encoding='utf-8') as f:
+                    json.dump(reviews_data, f)
+
+                # Generate word cloud
+                text_blob = ' '.join(r["text"] for r in reviews_data["reviews"])
+                wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text_blob)
+                wordcloud.to_file(os.path.join(WORDCLOUD_FOLDER, f'{safe_id}.png'))
+
+def analyze_product(json_path):
+    with open(json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    if not data.get("reviews"):
+        return {}
+
+    summary = data["summary"]
+    return {
+        'URL_ID': data["product_id"],
+        'OVERALL_RATING': summary["average_rating"],
+        'OVERALL_SENTIMENT': summary["overall_sentiment"].capitalize(),
+        'ACCURACY_SCORE': f"{summary['accuracy_score']}%",
+        'POSITIVE_REVIEWS': summary["sentiment_breakdown"]["positive"],
+        'NEUTRAL_REVIEWS': summary["sentiment_breakdown"]["neutral"],
+        'NEGATIVE_REVIEWS': summary["sentiment_breakdown"]["negative"],
+        'TOTAL_REVIEWS': summary["total_reviews"],
+        'FULL_ANALYSIS': json.dumps(data),
+        'URL': data["product_url"]
+    }
+
 def generate_results(input_file, output_file):
     data = pd.read_excel(input_file)
     results = []
 
-    for index, row in tqdm(data.iterrows(), total=data.shape[0], desc="Analyzing Texts"):
-        url_id = row['URL_ID']
-        file_path = os.path.join(ARTICLES_FOLDER, f'{url_id}.txt')
-        if os.path.exists(file_path):
-            metrics = analyze_text(file_path)
-            metrics['URL_ID'] = url_id
-            metrics['URL'] = row['URL']
-            results.append(metrics)
+    for _, row in tqdm(data.iterrows(), total=data.shape[0], desc="Analyzing"):
+        safe_id = sanitize_filename(row['URL_ID'])
+        json_path = os.path.join(ARTICLES_FOLDER, f'{safe_id}.json')
 
-    df = pd.DataFrame(results)
+        if os.path.exists(json_path):
+            analysis = analyze_product(json_path)
+            analysis.update({'URL_ID': row['URL_ID'], 'URL': row['URL']})
+            results.append(analysis)
 
-    # Ensure to save the file with openpyxl to avoid issues
-    df.to_excel(output_file, index=False, engine='openpyxl')
+    pd.DataFrame(results).to_excel(output_file, index=False, engine='openpyxl')
 
-# Flask routes
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -166,49 +203,28 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
-        return jsonify({"error": "No file part"}), 400
+        return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files['file']
+    if not file or file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
 
-    if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-
-    if file and allowed_file(file.filename):
+    if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
-        # Step 1: Extract articles (if not already done)
-        extract_articles(filepath)
-
-        # Step 2: Process the extracted data and generate results
-        output_file = os.path.join(app.config['OUTPUT_FOLDER'], 'output.xlsx')
+        extract_products(filepath)
+        output_file = os.path.join(app.config['OUTPUT_FOLDER'], 'analysis_results.xlsx')
         generate_results(filepath, output_file)
 
-        return jsonify({
-            "download_link": "/download"
-        })
+        return jsonify({"download_link": "/download"})
 
     return jsonify({"error": "Invalid file format"}), 400
 
-@app.route('/download', methods=['GET'])
+@app.route('/download')
 def download_file():
-    try:
-        # Path to the output file
-        output_file = 'output.xlsx'
+    return send_from_directory(app.config['OUTPUT_FOLDER'], 'analysis_results.xlsx', as_attachment=True)
 
-        # Check if the output file exists
-        if not os.path.exists(os.path.join(app.config['OUTPUT_FOLDER'], output_file)):
-            return jsonify({"error": "Output file does not exist."}), 404
-
-        # Send the file for download
-        return send_from_directory(
-            directory=app.config['OUTPUT_FOLDER'],
-            path=output_file,
-            as_attachment=True
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)

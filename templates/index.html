@@ -3,270 +3,368 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Text Analysis Upload</title>
+        <title>Product Sentiment Analyzer</title>
         <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
             rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"
         />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
         <style>
+            :root {
+                --bg-dark: #0e0e0e;
+                --text-light: #e0e0e0;
+                --accent-cyan: #00ffff;
+                --accent-olive: #808000;
+                --accent-purple: #9b59b6; /* nebula purple */
+                --modal-bg: #1a1a1a;
+            }
+
             body {
-                font-family: Arial, sans-serif;
-                background: linear-gradient(
-                    90deg,
-                    rgba(0, 255, 255, 1) 0%,
-                    rgba(128, 0, 128, 1) 100%
-                );
-                background-size: 200% 200%;
-                animation: gradientShift 6s ease infinite;
-                color: #fff;
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background-color: var(--bg-dark);
+                color: var(--text-light);
                 margin: 0;
                 padding: 0;
-                text-align: center;
+                overflow-x: hidden;
             }
 
-            h1 {
-                margin-top: 20px;
-                font-size: 2.5em;
-                font-weight: bold;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
-            }
-
-            .form-container {
-                margin: 50px auto;
-                padding: 30px;
-                background: rgba(0, 0, 0, 0.7);
-                border-radius: 10px;
-                width: 50%;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-            }
-
-            input[type="file"] {
-                padding: 10px;
-                font-size: 16px;
-                border-radius: 5px;
-                border: 1px solid #ccc;
-                background-color: #333;
-                color: white;
-            }
-
-            input[type="submit"] {
-                background-color: #4caf50;
-                color: white;
-                padding: 12px 20px;
-                font-size: 16px;
-                border-radius: 5px;
-                cursor: pointer;
-                border: none;
-                transition: background-color 0.3s;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            }
-
-            input[type="submit"]:hover {
-                background-color: #45a049;
-            }
-
-            .loading-container {
-                display: none;
-                margin-top: 20px;
-            }
-
-            #progress-bar {
-                width: 0;
-                height: 30px;
-                background-color: #4caf50;
-                border-radius: 5px;
-            }
-
-            @keyframes gradientShift {
-                0% {
-                    background-position: 0% 50%;
-                }
-                50% {
-                    background-position: 100% 50%;
-                }
-                100% {
-                    background-position: 0% 50%;
-                }
-            }
-
-            #sheet-viewer {
-                display: none;
-                margin-top: 30px;
-                background: rgba(0, 0, 0, 0.8);
+            .form-container,
+            .table-responsive,
+            .modal-content {
+                background-color: #1c1c1c;
                 padding: 20px;
-                border-radius: 10px;
-                overflow-x: auto;
-                max-width: 100%;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+                border-radius: 12px;
+                box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
             }
 
-            .table-container {
-                max-height: 400px;
-                overflow-y: auto;
-                margin-top: 20px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-                border-radius: 10px;
-                background-color: #222;
+            .modal-content {
+                background-color: var(--modal-bg);
+                color: var(--text-light);
+                width: 90%;
+                max-width: 600px;
+                margin: auto;
             }
 
-            #sheet-viewer table {
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                color: var(--accent-purple);
+            }
+
+            a {
+                color: var(--accent-cyan);
+                text-decoration: none;
+            }
+
+            a:hover {
+                color: var(--accent-olive);
+                text-decoration: underline;
+            }
+
+            .btn-custom {
+                background-color: var(--accent-cyan);
+                color: #000;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                transition: background-color 0.3s ease;
+            }
+
+            .btn-custom:hover {
+                background-color: var(--accent-olive);
+                color: white;
+            }
+
+            table {
                 width: 100%;
                 border-collapse: collapse;
-                border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            }
-
-            #sheet-viewer table,
-            th,
-            td {
-                border: 1px solid #555;
-            }
-
-            th,
-            td {
-                padding: 12px 15px;
-                text-align: center;
-                color: #fff;
             }
 
             th {
-                background-color: #4caf50;
+                background-color: var(--accent-olive);
                 color: white;
-                font-weight: bold;
-                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+                padding: 10px;
+                text-align: left;
             }
 
-            tr:nth-child(even) {
-                background-color: #333;
+            td {
+                padding: 10px;
+                border-bottom: 1px solid #333;
             }
 
-            tr:nth-child(odd) {
-                background-color: #444;
+            .wordcloud-img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 10px;
+                margin-top: 1rem;
+                box-shadow: 0 0 10px rgba(155, 89, 182, 0.5);
             }
 
-            tr:hover {
-                background-color: #555;
+            /* Pie chart container */
+            .chart-container {
+                width: 300px;
+                height: 300px;
+                margin: auto;
             }
 
-            .download-btn {
-                background-color: #008cba;
-                color: white;
-                padding: 12px 20px;
-                font-size: 16px;
-                border-radius: 5px;
-                cursor: pointer;
-                border: none;
-                margin-top: 20px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            @media (max-width: 768px) {
+                .modal-content {
+                    width: 95%;
+                }
+
+                .chart-container {
+                    width: 200px;
+                    height: 200px;
+                }
             }
 
-            .download-btn:hover {
-                background-color: #005f6b;
+            .dark-mode {
+                background-color: #121212;
+                color: var(--text-light);
+            }
+
+            .dark-mode .form-container,
+            .dark-mode .table-responsive,
+            .dark-mode .modal-content {
+                background-color: #181818;
+            }
+
+            .dark-mode th {
+                background-color: var(--accent-purple);
             }
         </style>
     </head>
-    <body>
-        <h1>Upload an Excel File for Analysis</h1>
+    <body class="container py-5">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Product Sentiment Analyzer</h1>
+            <div>
+                <button
+                    onclick="toggleDarkMode()"
+                    class="btn btn-outline-light me-2"
+                >
+                    Toggle Dark Mode
+                </button>
+                <button onclick="exportPDF()" class="btn btn-outline-warning">
+                    Export to PDF
+                </button>
+            </div>
+        </div>
 
-        <div class="form-container">
+        <div class="form-container mt-4">
             <form
                 id="upload-form"
                 action="/upload"
                 method="post"
                 enctype="multipart/form-data"
             >
-                <label for="file">Choose Excel file to upload:</label>
                 <input
                     type="file"
                     name="file"
                     id="file"
                     accept=".xlsx, .xls"
                     required
+                    class="form-control mb-3"
                 />
-                <br /><br />
-                <input type="submit" value="Upload and Analyze" />
+                <button type="submit" class="btn btn-success w-100">
+                    Upload and Analyze
+                </button>
             </form>
         </div>
 
-        <div class="loading-container" id="loading-container">
+        <div
+            id="loading-container"
+            class="text-center my-4"
+            style="display: none"
+        >
             <p>Analyzing the data, please wait...</p>
-            <div id="progress-bar"></div>
-        </div>
-
-        <div id="sheet-viewer">
-            <h2>Generated Analysis Sheet</h2>
-            <div class="table-container">
-                <table id="sheet-table"></table>
+            <div class="progress">
+                <div
+                    id="progress-bar"
+                    class="progress-bar progress-bar-striped"
+                    style="width: 50%"
+                ></div>
             </div>
-            <button class="download-btn" onclick="downloadFile()">
-                Download Excel
-            </button>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+        <div id="sheet-viewer" style="display: none">
+            <h2 class="text-center">Generated Analysis</h2>
+            <div class="table-responsive">
+                <table
+                    id="sheet-table"
+                    class="table table-bordered text-white"
+                ></table>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-custom mt-3" onclick="downloadFile()">
+                    Download Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal for detailed product info -->
+        <div
+            class="modal fade"
+            id="detailModal"
+            tabindex="-1"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Product Details</h5>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body" id="modal-body"></div>
+                </div>
+            </div>
+        </div>
+
         <script>
             document.getElementById("upload-form").onsubmit = async function (
-                event,
+                e,
             ) {
-                event.preventDefault();
+                e.preventDefault();
                 document.getElementById("loading-container").style.display =
                     "block";
-                document.getElementById("progress-bar").style.width = "0%";
-
                 const formData = new FormData();
                 formData.append(
                     "file",
                     document.getElementById("file").files[0],
                 );
 
-                const response = await fetch("/upload", {
+                const res = await fetch("/upload", {
                     method: "POST",
                     body: formData,
                 });
-
-                if (response.ok) {
-                    const data = await response.json();
+                if (res.ok) {
                     document.getElementById("loading-container").style.display =
                         "none";
                     document.getElementById("sheet-viewer").style.display =
                         "block";
                     loadSheet();
                 } else {
-                    alert("Error uploading file.");
+                    alert("Error occurred while processing.");
                 }
             };
 
             async function loadSheet() {
-                const response = await fetch("/download");
-                const blob = await response.blob();
+                const res = await fetch("/download");
+                const blob = await res.blob();
                 const data = await blob.arrayBuffer();
-                const workbook = XLSX.read(data);
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                const sheetData = XLSX.utils.sheet_to_json(sheet);
-
+                const wb = XLSX.read(data);
+                const sheet = XLSX.utils.sheet_to_json(
+                    wb.Sheets[wb.SheetNames[0]],
+                );
                 const table = document.getElementById("sheet-table");
-                const headers = Object.keys(sheetData[0]);
+                table.innerHTML = "";
+
+                const headers = Object.keys(sheet[0]);
                 const headerRow = table.insertRow();
                 headers.forEach((header) => {
-                    const cell = headerRow.insertCell();
-                    cell.textContent = header;
-                    cell.style.fontWeight = "bold";
-                    cell.style.backgroundColor = "#4caf50";
+                    const th = document.createElement("th");
+                    th.textContent = header;
+                    headerRow.appendChild(th);
                 });
 
-                sheetData.forEach((row) => {
-                    const rowElement = table.insertRow();
+                sheet.forEach((row) => {
+                    const rowEl = table.insertRow();
                     headers.forEach((header) => {
-                        const cell = rowElement.insertCell();
-                        cell.textContent = row[header];
+                        const td = rowEl.insertCell();
+                        td.innerHTML = header.toLowerCase().includes("link")
+                            ? `<a href="${row[header]}" target="_blank">Product Link</a>`
+                            : row[header];
                     });
+                    rowEl.style.cursor = "pointer";
+                    rowEl.addEventListener("click", () => showDetails(row));
                 });
+            }
+
+            function showDetails(row) {
+                const modalBody = document.getElementById("modal-body");
+                const fullData = JSON.parse(row.FULL_ANALYSIS || "{}");
+                const reviews = fullData.reviews || [];
+                const summary = fullData.summary || {};
+                const avgRating = parseFloat(row.OVERALL_RATING || 0);
+                const stars =
+                    "★".repeat(Math.round(avgRating)) +
+                    "☆".repeat(5 - Math.round(avgRating));
+                const wordcloudImg = encodeURIComponent(row.URL_ID);
+
+                modalBody.innerHTML = `
+                    <h4>${row.URL_ID}</h4>
+                    <p><a href="${row.URL}" target="_blank">View Product</a></p>
+                    <p><strong>Rating:</strong> ${stars} (${avgRating})</p>
+                    <p><strong>Sentiment:</strong> ${row.OVERALL_SENTIMENT}</p>
+                    <p><strong>Accuracy:</strong> ${row.ACCURACY_SCORE}%</p>
+                    <canvas id="sentimentChart" height="200"></canvas>
+                    <img src="/static/wordclouds/${wordcloudImg}.png" alt="Word Cloud" class="wordcloud-img" onerror="this.src='/static/wordclouds/default.png';" />
+                    <hr/>
+                    <h5>Sample Extracted Reviews</h5>
+                    <ul>${reviews.map((r) => `<li>${r.text} - <em>Rating: ${r.rating || "N/A"}</em> (${r.date || "No Date"})</li>`).join("")}</ul>
+                `;
+
+                setTimeout(() => {
+                    new Chart(document.getElementById("sentimentChart"), {
+                        type: "pie",
+                        data: {
+                            labels: ["Positive", "Neutral", "Negative"],
+                            datasets: [
+                                {
+                                    data: [
+                                        row.POSITIVE_REVIEWS,
+                                        row.NEUTRAL_REVIEWS,
+                                        row.NEGATIVE_REVIEWS,
+                                    ],
+                                    backgroundColor: [
+                                        "#4caf50",
+                                        "#ffc107",
+                                        "#f44336",
+                                    ],
+                                },
+                            ],
+                        },
+                        options: { responsive: true },
+                    });
+                }, 200);
+
+                new bootstrap.Modal(
+                    document.getElementById("detailModal"),
+                ).show();
             }
 
             function downloadFile() {
                 window.location.href = "/download";
             }
+
+            function toggleDarkMode() {
+                document.body.classList.toggle("dark-mode");
+            }
+
+            async function exportPDF() {
+                const doc = new jspdf.jsPDF();
+                const element = document.getElementById("sheet-viewer");
+                await html2canvas(element).then((canvas) => {
+                    const imgData = canvas.toDataURL("image/png");
+                    const imgProps = doc.getImageProperties(imgData);
+                    const pdfWidth = doc.internal.pageSize.getWidth();
+                    const pdfHeight =
+                        (imgProps.height * pdfWidth) / imgProps.width;
+                    doc.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+                    doc.save("analysis.pdf");
+                });
+            }
         </script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
