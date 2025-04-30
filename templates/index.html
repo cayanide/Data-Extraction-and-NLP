@@ -12,202 +12,1266 @@
         <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+        <!-- Add your style tag here -->
         <style>
+            /* Base Styles */
             :root {
-                --bg-dark: #0e0e0e;
-                --text-light: #e0e0e0;
-                --accent-cyan: #00ffff;
-                --accent-olive: #808000;
-                --accent-purple: #9b59b6; /* nebula purple */
-                --modal-bg: #1a1a1a;
+                --primary-color: #2c3e50;
+                --secondary-color: #1abc9c;
+                --tertiary-color: #3498db;
+                --accent-color: #e74c3c;
+                --light-color: #ecf0f1;
+                --dark-color: #121212;
+                --card-bg: rgba(25, 31, 45, 0.85);
+                --card-border: rgba(255, 255, 255, 0.1);
+                --overlay-bg: rgba(0, 0, 0, 0.7);
+                --success-color: #2ecc71;
+                --warning-color: #f39c12;
+                --danger-color: #e74c3c;
+                --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.1);
+                --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.15);
+                --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.2);
+                --transition-fast: 0.2s ease;
+                --transition-normal: 0.3s ease-in-out;
+                --transition-slow: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                --border-radius-sm: 6px;
+                --border-radius-md: 12px;
+                --border-radius-lg: 20px;
+                --font-main: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+                --font-heading: "Poppins", var(--font-main);
+                --gradient-primary: linear-gradient(
+                    135deg,
+                    #2c3e50 0%,
+                    #1abc9c 100%
+                );
+                --gradient-secondary: linear-gradient(
+                    135deg,
+                    #3498db 0%,
+                    #9b59b6 100%
+                );
+                --gradient-dark: linear-gradient(
+                    135deg,
+                    #121212 0%,
+                    #2c3e50 100%
+                );
+            }
+
+            @keyframes gradientShift {
+                0% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            @keyframes float {
+                0% {
+                    transform: translateY(0px);
+                }
+                50% {
+                    transform: translateY(-10px);
+                }
+                100% {
+                    transform: translateY(0px);
+                }
+            }
+
+            @keyframes rotating {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
             }
 
             body {
-                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-                background-color: var(--bg-dark);
-                color: var(--text-light);
+                font-family: var(--font-main);
+                background: var(--dark-color);
+                color: var(--light-color);
                 margin: 0;
                 padding: 0;
                 overflow-x: hidden;
+                min-height: 100vh;
+                position: relative;
             }
 
-            .form-container,
-            .table-responsive,
-            .modal-content {
-                background-color: #1c1c1c;
-                padding: 20px;
-                border-radius: 12px;
-                box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+            .background-animation {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(
+                    -45deg,
+                    #121212,
+                    #1e3b4e,
+                    #164769,
+                    #1a2c38
+                );
+                background-size: 400% 400%;
+                z-index: -1;
+                animation: gradientShift 15s ease infinite;
             }
 
-            .modal-content {
-                background-color: var(--modal-bg);
-                color: var(--text-light);
-                width: 90%;
-                max-width: 600px;
-                margin: auto;
-            }
-
-            h1,
-            h2,
-            h3,
-            h4,
-            h5,
-            h6 {
-                color: var(--accent-purple);
-            }
-
-            a {
-                color: var(--accent-cyan);
-                text-decoration: none;
-            }
-
-            a:hover {
-                color: var(--accent-olive);
-                text-decoration: underline;
-            }
-
-            .btn-custom {
-                background-color: var(--accent-cyan);
-                color: #000;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 8px;
-                transition: background-color 0.3s ease;
-            }
-
-            .btn-custom:hover {
-                background-color: var(--accent-olive);
-                color: white;
-            }
-
-            table {
+            .background-particles {
+                position: fixed;
+                top: 0;
+                left: 0;
                 width: 100%;
+                height: 100%;
+                z-index: -1;
+                overflow: hidden;
+            }
+
+            .particle {
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.1);
+                pointer-events: none;
+            }
+
+            .glow {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                width: 70vw;
+                height: 70vh;
+                transform: translate(-50%, -50%);
+                background: radial-gradient(
+                    ellipse at center,
+                    rgba(26, 188, 156, 0.1) 0%,
+                    rgba(26, 188, 156, 0) 70%
+                );
+                pointer-events: none;
+                z-index: -1;
+            }
+
+            /* Mouse trail effect */
+            .cursor-trail {
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: rgba(26, 188, 156, 0.7);
+                pointer-events: none;
+                transform: translate(-50%, -50%);
+                transition:
+                    width 0.2s,
+                    height 0.2s,
+                    opacity 1s;
+                z-index: 9999;
+            }
+
+            /* Layout Components */
+            .app-container {
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 2rem;
+                animation: fadeIn 0.8s var(--transition-normal);
+            }
+
+            .app-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2.5rem;
+                padding-bottom: 1.5rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .app-title {
+                font-family: var(--font-heading);
+                font-size: 2.5rem;
+                font-weight: 600;
+                color: var(--light-color);
+                margin: 0;
+                position: relative;
+                display: inline-block;
+            }
+
+            .app-title::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                bottom: -5px;
+                width: 60%;
+                height: 3px;
+                background: var(--secondary-color);
+                transition: width var(--transition-normal);
+            }
+
+            .app-title:hover::after {
+                width: 100%;
+            }
+
+            .app-subtitle {
+                font-size: 1rem;
+                font-weight: 300;
+                color: var(--tertiary-color);
+                margin-top: 5px;
+                opacity: 0.8;
+            }
+
+            .header-actions {
+                display: flex;
+                gap: 1rem;
+            }
+
+            /* Cards and Containers */
+            .card {
+                background: var(--card-bg);
+                border-radius: var(--border-radius-md);
+                border: 1px solid var(--card-border);
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+                box-shadow: var(--shadow-md);
+                backdrop-filter: blur(10px);
+                transition:
+                    transform var(--transition-normal),
+                    box-shadow var(--transition-normal);
+            }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+                padding-bottom: 1rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .card-title {
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: var(--light-color);
+                margin: 0;
+            }
+
+            .card-body {
+                position: relative;
+            }
+
+            /* Form Elements */
+            .form-control {
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: var(--light-color);
+                border-radius: var(--border-radius-sm);
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
+                transition: all var(--transition-normal);
+            }
+
+            .form-control:focus {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-color: var(--secondary-color);
+                box-shadow: 0 0 0 0.25rem rgba(26, 188, 156, 0.25);
+                outline: none;
+            }
+
+            .form-control::placeholder {
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            .form-label {
+                color: var(--light-color);
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+                display: block;
+            }
+
+            .form-text {
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 0.875rem;
+                margin-top: 0.25rem;
+            }
+
+            .file-upload {
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 160px;
+                border: 2px dashed rgba(255, 255, 255, 0.2);
+                border-radius: var(--border-radius-md);
+                background-color: rgba(255, 255, 255, 0.03);
+                padding: 2rem;
+                cursor: pointer;
+                transition: all var(--transition-normal);
+            }
+
+            .file-upload:hover {
+                border-color: var(--secondary-color);
+                background-color: rgba(26, 188, 156, 0.05);
+            }
+
+            .file-upload input[type="file"] {
+                position: absolute;
+                left: 0;
+                top: 0;
+                opacity: 0;
+                width: 100%;
+                height: 100%;
+                cursor: pointer;
+            }
+
+            .file-upload-icon {
+                font-size: 2.5rem;
+                color: var(--secondary-color);
+                margin-bottom: 1rem;
+                animation: float 3s ease-in-out infinite;
+            }
+
+            .file-upload-text {
+                font-size: 1.1rem;
+                text-align: center;
+                color: var(--light-color);
+            }
+
+            .file-upload-info {
+                font-size: 0.9rem;
+                color: rgba(255, 255, 255, 0.6);
+                margin-top: 0.5rem;
+                text-align: center;
+            }
+
+            .file-selected {
+                display: none;
+                margin-top: 1rem;
+                padding: 0.75rem 1rem;
+                background-color: rgba(26, 188, 156, 0.1);
+                border-radius: var(--border-radius-sm);
+                border-left: 3px solid var(--secondary-color);
+            }
+
+            /* Buttons */
+            .btn {
+                border-radius: var(--border-radius-sm);
+                padding: 0.75rem 1.5rem;
+                font-weight: 500;
+                transition: all var(--transition-normal);
+                position: relative;
+                overflow: hidden;
+                z-index: 1;
+                border: none;
+            }
+
+            .btn::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 0;
+                height: 100%;
+                background-color: rgba(255, 255, 255, 0.1);
+                transition: width 0.3s ease;
+                z-index: -1;
+            }
+
+            .btn:hover::before {
+                width: 100%;
+            }
+
+            .btn-primary {
+                background: var(--gradient-primary);
+                color: white;
+                box-shadow: 0 4px 15px rgba(26, 188, 156, 0.3);
+            }
+
+            .btn-primary:hover,
+            .btn-primary:focus {
+                box-shadow: 0 6px 20px rgba(26, 188, 156, 0.4);
+                transform: translateY(-2px);
+                background: var(--gradient-primary);
+                background-position: right center;
+            }
+
+            .btn-secondary {
+                background: var(--gradient-secondary);
+                color: white;
+                box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            }
+
+            .btn-secondary:hover,
+            .btn-secondary:focus {
+                box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+                transform: translateY(-2px);
+            }
+
+            .btn-outline {
+                background: transparent;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: var(--light-color);
+            }
+
+            .btn-outline:hover,
+            .btn-outline:focus {
+                border-color: var(--secondary-color);
+                color: var(--secondary-color);
+            }
+
+            .btn-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+
+            .btn-icon i {
+                font-size: 1.1rem;
+            }
+
+            .btn-floating {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: fixed;
+                bottom: 2rem;
+                right: 2rem;
+                box-shadow: var(--shadow-md);
+                z-index: 99;
+            }
+
+            .btn-floating i {
+                font-size: 1.2rem;
+            }
+
+            /* Progress */
+            .progress {
+                height: 8px;
+                background-color: rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+                overflow: hidden;
+                margin: 1rem 0;
+            }
+
+            .progress-bar {
+                background: var(--gradient-secondary);
+                transition: width 0.3s ease;
+                height: 100%;
+            }
+
+            /* Tables */
+            .table-responsive {
+                border-radius: var(--border-radius-md);
+                overflow: hidden;
+                box-shadow: var(--shadow-md);
+            }
+
+            .table {
+                width: 100%;
+                margin-bottom: 0;
+                color: var(--light-color);
                 border-collapse: collapse;
             }
 
-            th {
-                background-color: var(--accent-olive);
-                color: white;
-                padding: 10px;
-                text-align: left;
+            .table th {
+                background-color: rgba(26, 188, 156, 0.2);
+                color: var(--light-color);
+                font-weight: 600;
+                padding: 1rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                text-transform: uppercase;
+                font-size: 0.85rem;
+                letter-spacing: 1px;
             }
 
-            td {
-                padding: 10px;
-                border-bottom: 1px solid #333;
+            .table td {
+                padding: 1rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                vertical-align: middle;
+                transition: background-color 0.2s ease;
+            }
+
+            .table tbody tr {
+                transition: background-color 0.2s ease;
+            }
+
+            .table tbody tr:hover {
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+
+            .table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            /* Modal Styles */
+            .modal-content {
+                background-color: var(--card-bg);
+                border: 1px solid var(--card-border);
+                border-radius: var(--border-radius-md);
+                box-shadow: var(--shadow-lg);
+                backdrop-filter: blur(10px);
+            }
+
+            .modal-header {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 1.5rem;
+            }
+
+            .modal-title {
+                color: var(--light-color);
+                font-weight: 600;
+            }
+
+            .modal-body {
+                padding: 1.5rem;
+            }
+
+            .modal-footer {
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 1.5rem;
+            }
+
+            .btn-close {
+                color: var(--light-color);
+                text-shadow: none;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+            }
+
+            .btn-close:hover {
+                opacity: 1;
+            }
+
+            /* Chart styles */
+            .chart-container {
+                position: relative;
+                width: 100%;
+                height: 300px;
+                margin: 1.5rem 0;
+            }
+
+            /* Word cloud styling */
+            .wordcloud-container {
+                position: relative;
+                padding: 1rem;
+                background-color: rgba(255, 255, 255, 0.03);
+                border-radius: var(--border-radius-md);
+                transition: all var(--transition-normal);
             }
 
             .wordcloud-img {
-                max-width: 100%;
-                height: auto;
-                border-radius: 10px;
-                margin-top: 1rem;
-                box-shadow: 0 0 10px rgba(155, 89, 182, 0.5);
+                width: 100%;
+                max-height: 300px;
+                object-fit: contain;
+                display: block;
+                margin: 0 auto;
             }
 
-            /* Pie chart container */
-            .chart-container {
-                width: 300px;
-                height: 300px;
-                margin: auto;
+            /* Stats cards */
+            .stats-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 1.5rem;
+                margin-bottom: 2rem;
+            }
+
+            .stat-card {
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: var(--border-radius-md);
+                padding: 1.5rem;
+                text-align: center;
+                transition: all var(--transition-normal);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .stat-icon {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+                color: var(--secondary-color);
+            }
+
+            .stat-value {
+                font-size: 2rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+                color: var(--light-color);
+            }
+
+            .stat-label {
+                font-size: 0.9rem;
+                color: rgba(255, 255, 255, 0.7);
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            /* Reviews section */
+            .review-list {
+                list-style: none;
+                padding: 0;
+                margin: 1.5rem 0;
+            }
+
+            .review-item {
+                padding: 1rem;
+                border-radius: var(--border-radius-sm);
+                background-color: rgba(255, 255, 255, 0.03);
+                margin-bottom: 1rem;
+                transition: all var(--transition-normal);
+                border-left: 3px solid transparent;
+            }
+
+            .review-item.positive {
+                border-left-color: var(--success-color);
+            }
+
+            .review-item.neutral {
+                border-left-color: var(--warning-color);
+            }
+
+            .review-item.negative {
+                border-left-color: var(--danger-color);
+            }
+
+            .review-item:hover {
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+
+            .review-text {
+                margin-bottom: 0.5rem;
+            }
+
+            .review-meta {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.85rem;
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            /* Star ratings */
+            .star-rating {
+                font-size: 1.5rem;
+                letter-spacing: 2px;
+            }
+
+            .star-filled {
+                color: var(--secondary-color);
+            }
+
+            .star-empty {
+                color: rgba(255, 255, 255, 0.2);
+            }
+
+            /* Tooltip */
+            .tooltip {
+                position: absolute;
+                background-color: var(--card-bg);
+                color: var(--light-color);
+                padding: 0.75rem 1rem;
+                border-radius: var(--border-radius-sm);
+                box-shadow: var(--shadow-md);
+                z-index: 100;
+                font-size: 0.9rem;
+                max-width: 200px;
+                opacity: 0;
+                visibility: hidden;
+                transition:
+                    opacity 0.3s,
+                    visibility 0.3s;
+                pointer-events: none;
+            }
+
+            /* Loading Animation */
+            .loader-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                padding: 2rem;
+            }
+
+            .loading-spinner {
+                width: 50px;
+                height: 50px;
+                border: 3px solid rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                border-top-color: var(--secondary-color);
+                animation: rotating 1s linear infinite;
+                margin-bottom: 1rem;
+            }
+
+            .loading-text {
+                font-size: 1rem;
+                color: var(--light-color);
+                margin: 0.5rem 0;
+            }
+
+            /* Data Status */
+            .data-status {
+                font-size: 1rem;
+                padding: 1rem;
+                text-align: center;
+                color: rgba(255, 255, 255, 0.7);
+                margin: 2rem 0;
+            }
+
+            /* Responsive adjustments */
+            @media (max-width: 992px) {
+                .app-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 1rem;
+                }
+
+                .header-actions {
+                    width: 100%;
+                    justify-content: center;
+                }
+
+                .stats-container {
+                    grid-template-columns: repeat(2, 1fr);
+                }
             }
 
             @media (max-width: 768px) {
-                .modal-content {
-                    width: 95%;
+                .app-container {
+                    padding: 1rem;
                 }
 
-                .chart-container {
-                    width: 200px;
-                    height: 200px;
+                .app-title {
+                    font-size: 2rem;
+                }
+
+                .card {
+                    padding: 1rem;
+                }
+
+                .stats-container {
+                    grid-template-columns: 1fr;
+                }
+
+                .header-actions {
+                    flex-direction: column;
+                }
+
+                .btn-floating {
+                    bottom: 1rem;
+                    right: 1rem;
                 }
             }
 
-            .dark-mode {
-                background-color: #121212;
-                color: var(--text-light);
+            /* Utility Classes */
+            .text-secondary {
+                color: var(--secondary-color);
             }
 
-            .dark-mode .form-container,
-            .dark-mode .table-responsive,
-            .dark-mode .modal-content {
-                background-color: #181818;
+            .text-muted {
+                color: rgba(255, 255, 255, 0.7); /* or use white */
             }
 
-            .dark-mode th {
-                background-color: var(--accent-purple);
+            .text-center {
+                text-align: center;
+            }
+
+            .d-flex {
+                display: flex;
+            }
+
+            .justify-content-between {
+                justify-content: space-between;
+            }
+
+            .align-items-center {
+                align-items: center;
+            }
+
+            .flex-column {
+                flex-direction: column;
+            }
+
+            .gap-2 {
+                gap: 0.5rem;
+            }
+
+            .mt-3 {
+                margin-top: 1rem;
+            }
+
+            .mb-3 {
+                margin-bottom: 1rem;
+            }
+
+            .mt-4 {
+                margin-top: 1.5rem;
+            }
+
+            .mb-4 {
+                margin-bottom: 1.5rem;
+            }
+
+            .p-0 {
+                padding: 0;
+            }
+
+            .w-100 {
+                width: 100%;
+            }
+
+            .animate-fadeIn {
+                animation: fadeIn 0.6s var(--transition-normal);
+            }
+
+            .animate-pulse {
+                animation: pulse 2s infinite var(--transition-normal);
+            }
+
+            /* Dark mode toggle */
+            .theme-toggle {
+                background: transparent;
+                border: none;
+                color: var(--light-color);
+                font-size: 1.5rem;
+                cursor: pointer;
+                transition: transform 0.3s ease;
+                outline: none;
+            }
+
+            .theme-toggle:hover {
+                transform: rotate(30deg);
+                color: var(--secondary-color);
+            }
+
+            .theme-toggle-icon {
+                transition: all 0.3s ease;
+            }
+
+            /* Light mode styles */
+            .light-mode {
+                --primary-color: #2c3e50;
+                --secondary-color: #16a085;
+                --tertiary-color: #2980b9;
+                --accent-color: #e74c3c;
+                --light-color: #2c3e50;
+                --dark-color: #f9f9f9;
+                --card-bg: rgba(255, 255, 255, 0.85);
+                --card-border: rgba(0, 0, 0, 0.1);
+                --overlay-bg: rgba(255, 255, 255, 0.8);
+            }
+
+            .light-mode .background-animation {
+                background: linear-gradient(
+                    -45deg,
+                    #f5f7fa,
+                    #e0eafc,
+                    #c9d6ff,
+                    #d7e1ec
+                );
+                background-size: 400% 400%;
+            }
+
+            .light-mode .card {
+                background: var(--card-bg);
+                border: 1px solid var(--card-border);
+            }
+
+            .light-mode .form-control {
+                background-color: rgba(0, 0, 0, 0.03);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                color: var(--light-color);
+            }
+
+            .light-mode .form-control:focus {
+                background-color: rgba(0, 0, 0, 0.05);
+                border-color: var(--secondary-color);
+            }
+
+            .light-mode .card-header,
+            .light-mode .modal-header,
+            .light-mode .modal-footer {
+                border-color: rgba(0, 0, 0, 0.1);
+            }
+
+            .light-mode .table th {
+                background-color: rgba(22, 160, 133, 0.1);
+                color: var(--primary-color);
+            }
+
+            .light-mode .table td {
+                border-color: rgba(0, 0, 0, 0.05);
+            }
+
+            .light-mode .file-upload {
+                border-color: rgba(0, 0, 0, 0.2);
+                background-color: rgba(0, 0, 0, 0.02);
+            }
+
+            .light-mode .text-muted {
+                color: rgba(0, 0, 0, 0.6);
+            }
+
+            .light-mode .btn-outline {
+                border-color: rgba(0, 0, 0, 0.2);
+                color: var(--primary-color);
+            }
+
+            .light-mode .review-item {
+                background-color: rgba(0, 0, 0, 0.02);
+            }
+
+            .light-mode .review-meta {
+                color: rgba(0, 0, 0, 0.6);
+            }
+
+            .light-mode .star-empty {
+                color: rgba(0, 0, 0, 0.2);
+            }
+
+            .light-mode .glow {
+                background: radial-gradient(
+                    ellipse at center,
+                    rgba(22, 160, 133, 0.1) 0%,
+                    rgba(22, 160, 133, 0) 70%
+                );
+            }
+
+            /* Tooltip showing on hover */
+            [data-tooltip]:hover .tooltip {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .notification-badge {
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background-color: var(--accent-color);
+                color: white;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                font-size: 0.75rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .review-item {
+                padding: 1rem;
+                border-radius: var(--border-radius-sm);
+                background-color: rgba(255, 255, 255, 0.03);
+                transition: all var(--transition-normal);
+                border-left: 3px solid transparent;
+            }
+
+            .review-item.positive {
+                border-left-color: var(--success-color);
+                background-color: rgba(46, 204, 113, 0.05);
+            }
+
+            .review-item.neutral {
+                border-left-color: var(--warning-color);
+                background-color: rgba(243, 156, 18, 0.05);
+            }
+
+            .review-item.negative {
+                border-left-color: var(--danger-color);
+                background-color: rgba(231, 76, 60, 0.05);
+            }
+
+            .star-rating.small {
+                font-size: 1rem;
+            }
+
+            .review-text {
+                line-height: 1.6;
+                color: var(--light-color);
+            }
+
+            .alert-success {
+                background-color: rgba(46, 204, 113, 0.1);
+                border-color: rgba(46, 204, 113, 0.2);
+                color: white;
+            }
+
+            .alert-warning {
+                background-color: rgba(243, 156, 18, 0.1);
+                border-color: rgba(243, 156, 18, 0.2);
+                color: white;
+            }
+
+            .sticky-top {
+                position: -webkit-sticky;
+                position: sticky;
+                z-index: 1;
+            }
+            body:not(.light-mode) .how-it-works-text {
+                color: white !important;
             }
         </style>
     </head>
-    <body class="container py-5">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1>Product Sentiment Analyzer</h1>
-            <div>
-                <button
-                    onclick="toggleDarkMode()"
-                    class="btn btn-outline-light me-2"
-                >
-                    Toggle Dark Mode
-                </button>
-                <button onclick="exportPDF()" class="btn btn-outline-warning">
-                    Export to PDF
-                </button>
-            </div>
-        </div>
+    <body>
+        <div class="background-animation"></div>
+        <div class="background-particles" id="particles"></div>
+        <div class="glow"></div>
 
-        <div class="form-container mt-4">
-            <form
-                id="upload-form"
-                action="/upload"
-                method="post"
-                enctype="multipart/form-data"
+        <div class="app-container">
+            <header class="app-header">
+                <div>
+                    <h1 class="app-title">
+                        <i class="fas fa-chart-bar me-2"></i>Sentiment Analyzer
+                    </h1>
+                    <p class="app-subtitle">
+                        Analyze product reviews with advanced AI sentiment
+                        analysis
+                    </p>
+                </div>
+                <div class="header-actions">
+                    <button
+                        id="theme-toggle"
+                        class="btn btn-outline btn-icon me-2"
+                    >
+                        <i class="fas fa-moon theme-toggle-icon"></i>
+                        <span class="theme-text">Dark Mode</span>
+                    </button>
+                    <button id="export-pdf" class="btn btn-outline btn-icon">
+                        <i class="fas fa-file-pdf me-2"></i>Export PDF
+                    </button>
+                </div>
+            </header>
+
+            <div
+                class="stats-container"
+                id="stats-container"
+                style="display: none"
             >
-                <input
-                    type="file"
-                    name="file"
-                    id="file"
-                    accept=".xlsx, .xls"
-                    required
-                    class="form-control mb-3"
-                />
-                <button type="submit" class="btn btn-success w-100">
-                    Upload and Analyze
-                </button>
-            </form>
-        </div>
-
-        <div
-            id="loading-container"
-            class="text-center my-4"
-            style="display: none"
-        >
-            <p>Analyzing the data, please wait...</p>
-            <div class="progress">
+                <div class="stat-card animate-fadeIn">
+                    <i class="fas fa-star stat-icon"></i>
+                    <div class="stat-value" id="avg-rating">0.0</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
                 <div
-                    id="progress-bar"
-                    class="progress-bar progress-bar-striped"
-                    style="width: 50%"
-                ></div>
+                    class="stat-card animate-fadeIn"
+                    style="animation-delay: 0.1s"
+                >
+                    <i class="fas fa-smile stat-icon"></i>
+                    <div class="stat-value" id="positive-count">0</div>
+                    <div class="stat-label">Positive Reviews</div>
+                </div>
+                <div
+                    class="stat-card animate-fadeIn"
+                    style="animation-delay: 0.2s"
+                >
+                    <i class="fas fa-meh stat-icon"></i>
+                    <div class="stat-value" id="neutral-count">0</div>
+                    <div class="stat-label">Neutral Reviews</div>
+                </div>
+                <div
+                    class="stat-card animate-fadeIn"
+                    style="animation-delay: 0.3s"
+                >
+                    <i class="fas fa-frown stat-icon"></i>
+                    <div class="stat-value" id="negative-count">0</div>
+                    <div class="stat-label">Negative Reviews</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Upload Your Data</h2>
+                    <span class="text-muted how-it-works-text"
+                        >Supported formats: .xlsx, .xls</span
+                    >
+                </div>
+                <div class="card-body">
+                    <form id="upload-form" enctype="multipart/form-data">
+                        <div class="file-upload" id="drop-area">
+                            <input
+                                type="file"
+                                name="file"
+                                id="file"
+                                accept=".xlsx, .xls"
+                                required
+                            />
+                            <i
+                                class="fas fa-cloud-upload-alt file-upload-icon"
+                            ></i>
+                            <div class="file-upload-text">
+                                Drag & drop your file here
+                            </div>
+                            <div class="file-upload-info">
+                                or click to browse files
+                            </div>
+                            <div class="file-selected" id="file-selected">
+                                <i class="fas fa-file-excel me-2"></i>
+                                <span id="file-name">No file selected</span>
+                            </div>
+                        </div>
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100 mt-4 btn-icon"
+                        >
+                            <i class="fas fa-chart-pie me-2"></i>Upload and
+                            Analyze
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div
+                id="loading-container"
+                class="loader-container"
+                style="display: none"
+            >
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Analyzing sentiment data...</p>
+                <div class="progress w-100">
+                    <div
+                        id="progress-bar"
+                        class="progress-bar"
+                        style="width: 0%"
+                    ></div>
+                </div>
+                <p class="text-muted mt-3" style="color: white">
+                    This might take a moment depending on the amount of data
+                </p>
+            </div>
+
+            <div id="sheet-viewer" style="display: none">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Generated Analysis</h2>
+                        <button
+                            class="btn btn-secondary btn-icon"
+                            onclick="downloadFile()"
+                        >
+                            <i class="fas fa-download me-2"></i>Download Excel
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="chart-container">
+                                    <canvas id="sentiment-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="chart-container">
+                                    <canvas id="rating-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="sheet-table" class="table"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h2 class="card-title">How It Works</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <i
+                                class="fas fa-upload text-secondary"
+                                style="font-size: 2.5rem"
+                            ></i>
+                            <h5 class="mt-3" style="color: white">
+                                1. Upload Your Data
+                            </h5>
+                            <p
+                                class="text-muted how-it-works-text"
+                                style="color: white"
+                            >
+                                Upload your Excel file containing product
+                                reviews
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <i
+                                class="fas fa-robot text-secondary"
+                                style="font-size: 2.5rem"
+                            ></i>
+                            <h5 class="mt-3" style="color: white">
+                                2. AI Analysis
+                            </h5>
+                            <p
+                                class="text-muted how-it-works-text"
+                                style="color: white"
+                            >
+                                Our AI processes the sentiment of each review
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <i
+                                class="fas fa-chart-line text-secondary"
+                                style="font-size: 2.5rem"
+                            ></i>
+                            <h5 class="mt-3" style="color: white">
+                                3. Insight Reports
+                            </h5>
+                            <p
+                                class="text-muted how-it-works-text"
+                                style="color: white"
+                            >
+                                View detailed analysis and export the results
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div id="sheet-viewer" style="display: none">
-            <h2 class="text-center">Generated Analysis</h2>
-            <div class="table-responsive">
-                <table
-                    id="sheet-table"
-                    class="table table-bordered text-white"
-                ></table>
-            </div>
-            <div class="text-center">
-                <button class="btn btn-custom mt-3" onclick="downloadFile()">
-                    Download Excel
-                </button>
-            </div>
-        </div>
+        <button class="btn-floating btn-primary" id="scroll-top">
+            <i class="fas fa-arrow-up"></i>
+        </button>
 
-        <!-- Modal for detailed product info -->
         <div
             class="modal fade"
             id="detailModal"
@@ -226,145 +1290,537 @@
                         ></button>
                     </div>
                     <div class="modal-body" id="modal-body"></div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-outline"
+                            data-bs-dismiss="modal"
+                        >
+                            Close
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            id="export-product-detail"
+                        >
+                            <i class="fas fa-file-export me-2"></i>Export
+                            Details
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            document.getElementById("upload-form").onsubmit = async function (
-                e,
-            ) {
-                e.preventDefault();
-                document.getElementById("loading-container").style.display =
-                    "block";
-                const formData = new FormData();
-                formData.append(
-                    "file",
-                    document.getElementById("file").files[0],
-                );
+            let currentProductData = null;
+            let chartInstances = {};
+            let sheetData = [];
+            let isDarkMode = true;
 
-                const res = await fetch("/upload", {
-                    method: "POST",
-                    body: formData,
+            document
+                .getElementById("theme-toggle")
+                .addEventListener("click", toggleDarkMode);
+            document
+                .getElementById("scroll-top")
+                .addEventListener("click", () =>
+                    window.scrollTo({ top: 0, behavior: "smooth" }),
+                );
+            document
+                .getElementById("export-pdf")
+                .addEventListener("click", exportPDF);
+
+            document
+                .getElementById("file")
+                .addEventListener("change", function (e) {
+                    const fileSelected =
+                        document.getElementById("file-selected");
+                    const fileName = document.getElementById("file-name");
+                    fileSelected.style.display = this.files.length
+                        ? "block"
+                        : "none";
+                    fileName.textContent = this.files.length
+                        ? this.files[0].name
+                        : "No file selected";
                 });
-                if (res.ok) {
-                    document.getElementById("loading-container").style.display =
-                        "none";
+
+            document
+                .getElementById("upload-form")
+                .addEventListener("submit", async function (e) {
+                    e.preventDefault();
+                    const fileInput = document.getElementById("file");
+                    if (!fileInput.files.length)
+                        return alert("Please select a file");
+
+                    const formData = new FormData();
+                    formData.append("file", fileInput.files[0]);
+
+                    showLoading(true);
+                    try {
+                        const response = await fetch("/upload", {
+                            method: "POST",
+                            body: formData,
+                        });
+
+                        const data = await response.json();
+                        if (data.error) throw new Error(data.error);
+
+                        await loadAnalysisData();
+                        showLoading(false);
+                    } catch (error) {
+                        showLoading(false);
+                        alert(`Error: ${error.message}`);
+                    }
+                });
+
+            async function loadAnalysisData() {
+                try {
+                    const response = await fetch("/download");
+                    const data = await response.arrayBuffer();
+                    const workbook = XLSX.read(data, { type: "array" });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    updateStats(jsonData);
+                    renderDataTable(jsonData);
+                    createCharts(jsonData);
+
+                    document.getElementById("stats-container").style.display =
+                        "flex";
                     document.getElementById("sheet-viewer").style.display =
                         "block";
-                    loadSheet();
-                } else {
-                    alert("Error occurred while processing.");
+                } catch (error) {
+                    console.error("Error loading data:", error);
                 }
-            };
+            }
 
-            async function loadSheet() {
-                const res = await fetch("/download");
-                const blob = await res.blob();
-                const data = await blob.arrayBuffer();
-                const wb = XLSX.read(data);
-                const sheet = XLSX.utils.sheet_to_json(
-                    wb.Sheets[wb.SheetNames[0]],
+            function updateStats(data) {
+                const totals = data.reduce(
+                    (acc, item) => ({
+                        positive: acc.positive + (item.POSITIVE_REVIEWS || 0),
+                        neutral: acc.neutral + (item.NEUTRAL_REVIEWS || 0),
+                        negative: acc.negative + (item.NEGATIVE_REVIEWS || 0),
+                        rating:
+                            acc.rating + (parseFloat(item.OVERALL_RATING) || 0),
+                    }),
+                    { positive: 0, neutral: 0, negative: 0, rating: 0 },
                 );
+
+                animateCounter(
+                    document.getElementById("avg-rating"),
+                    0,
+                    totals.rating / data.length,
+                    1000,
+                    1,
+                );
+                animateCounter(
+                    document.getElementById("positive-count"),
+                    0,
+                    totals.positive,
+                    1000,
+                );
+                animateCounter(
+                    document.getElementById("neutral-count"),
+                    0,
+                    totals.neutral,
+                    1000,
+                );
+                animateCounter(
+                    document.getElementById("negative-count"),
+                    0,
+                    totals.negative,
+                    1000,
+                );
+            }
+
+            function renderDataTable(data) {
                 const table = document.getElementById("sheet-table");
                 table.innerHTML = "";
+                if (!data.length) return;
 
-                const headers = Object.keys(sheet[0]);
+                const headers = Object.keys(data[0]).filter(
+                    (key) => key !== "FULL_ANALYSIS",
+                );
                 const headerRow = table.insertRow();
                 headers.forEach((header) => {
                     const th = document.createElement("th");
-                    th.textContent = header;
+                    th.textContent = header.replace(/_/g, " ");
                     headerRow.appendChild(th);
                 });
 
-                sheet.forEach((row) => {
-                    const rowEl = table.insertRow();
+                data.forEach((row) => {
+                    const tr = table.insertRow();
+                    tr.style.cursor = "pointer";
+                    tr.addEventListener("click", () => showDetails(row));
+
                     headers.forEach((header) => {
-                        const td = rowEl.insertCell();
-                        td.innerHTML = header.toLowerCase().includes("link")
-                            ? `<a href="${row[header]}" target="_blank">Product Link</a>`
-                            : row[header];
+                        const td = tr.insertCell();
+                        if (header === "OVERALL_RATING") {
+                            td.innerHTML = createStarRating(row[header]);
+                        } else if (header === "OVERALL_SENTIMENT") {
+                            td.innerHTML = createSentimentBadge(row[header]);
+                        } else if (header.toLowerCase().includes("url")) {
+                            td.innerHTML = `<a href="${row[header]}" target="_blank">View Product</a>`;
+                        } else {
+                            td.textContent = row[header];
+                        }
                     });
-                    rowEl.style.cursor = "pointer";
-                    rowEl.addEventListener("click", () => showDetails(row));
+                });
+            }
+
+            function createStarRating(rating) {
+                let stars = "";
+                for (let i = 0; i < 5; i++) {
+                    stars +=
+                        i < Math.floor(rating)
+                            ? '<i class="fas fa-star star-filled"></i>'
+                            : i === Math.floor(rating) && rating % 1 >= 0.5
+                              ? '<i class="fas fa-star-half-alt star-filled"></i>'
+                              : '<i class="far fa-star star-empty"></i>';
+                }
+                return `<div class="star-rating">${stars} <span>${rating}</span></div>`;
+            }
+
+            function createSentimentBadge(sentiment) {
+                const colors = {
+                    Positive: "success",
+                    Neutral: "warning",
+                    Negative: "danger",
+                };
+                return `<span class="badge bg-${colors[sentiment]}">${sentiment}</span>`;
+            }
+
+            function createCharts(data) {
+                createSentimentChart(data);
+                createRatingChart(data);
+            }
+
+            function createSentimentChart(data) {
+                const ctx = document
+                    .getElementById("sentiment-chart")
+                    .getContext("2d");
+                const totals = data.reduce(
+                    (acc, item) => ({
+                        positive: acc.positive + (item.POSITIVE_REVIEWS || 0),
+                        neutral: acc.neutral + (item.NEUTRAL_REVIEWS || 0),
+                        negative: acc.negative + (item.NEGATIVE_REVIEWS || 0),
+                    }),
+                    { positive: 0, neutral: 0, negative: 0 },
+                );
+
+                if (chartInstances.sentiment)
+                    chartInstances.sentiment.destroy();
+
+                chartInstances.sentiment = new Chart(ctx, {
+                    type: "doughnut",
+                    data: {
+                        labels: ["Positive", "Neutral", "Negative"],
+                        datasets: [
+                            {
+                                data: [
+                                    totals.positive,
+                                    totals.neutral,
+                                    totals.negative,
+                                ],
+                                backgroundColor: [
+                                    "#2ecc71",
+                                    "#f39c12",
+                                    "#e74c3c",
+                                ],
+                            },
+                        ],
+                    },
+                });
+            }
+
+            function createRatingChart(data) {
+                const ctx = document
+                    .getElementById("rating-chart")
+                    .getContext("2d");
+                const ratings = [0, 0, 0, 0, 0];
+
+                data.forEach((item) => {
+                    const analysis = JSON.parse(item.FULL_ANALYSIS || "{}");
+                    (analysis.reviews || []).forEach((review) => {
+                        const rating = Math.floor(review.rating || 0);
+                        if (rating >= 1 && rating <= 5) ratings[rating - 1]++;
+                    });
+                });
+
+                if (chartInstances.rating) chartInstances.rating.destroy();
+
+                chartInstances.rating = new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: [
+                            "1 Star",
+                            "2 Stars",
+                            "3 Stars",
+                            "4 Stars",
+                            "5 Stars",
+                        ],
+                        datasets: [
+                            {
+                                label: "Reviews",
+                                data: ratings,
+                                backgroundColor: [
+                                    "#e74c3c",
+                                    "#e67e22",
+                                    "#f39c12",
+                                    "#27ae60",
+                                    "#2ecc71",
+                                ],
+                            },
+                        ],
+                    },
                 });
             }
 
             function showDetails(row) {
                 const modalBody = document.getElementById("modal-body");
-                const fullData = JSON.parse(row.FULL_ANALYSIS || "{}");
-                const reviews = fullData.reviews || [];
-                const summary = fullData.summary || {};
-                const avgRating = parseFloat(row.OVERALL_RATING || 0);
-                const stars =
-                    "★".repeat(Math.round(avgRating)) +
-                    "☆".repeat(5 - Math.round(avgRating));
+                const analysis = JSON.parse(row.FULL_ANALYSIS || "{}");
+                const reviews = analysis.reviews || [];
+                const summary = analysis.summary || {};
                 const wordcloudImg = encodeURIComponent(row.URL_ID);
 
                 modalBody.innerHTML = `
-                    <h4>${row.URL_ID}</h4>
-                    <p><a href="${row.URL}" target="_blank">View Product</a></p>
-                    <p><strong>Rating:</strong> ${stars} (${avgRating})</p>
-                    <p><strong>Sentiment:</strong> ${row.OVERALL_SENTIMENT}</p>
-                    <p><strong>Accuracy:</strong> ${row.ACCURACY_SCORE}%</p>
-                    <canvas id="sentimentChart" height="200"></canvas>
-                    <img src="/static/wordclouds/${wordcloudImg}.png" alt="Word Cloud" class="wordcloud-img" onerror="this.src='/static/wordclouds/default.png';" />
-                    <hr/>
-                    <h5>Sample Extracted Reviews</h5>
-                    <ul>${reviews.map((r) => `<li>${r.text} - <em>Rating: ${r.rating || "N/A"}</em> (${r.date || "No Date"})</li>`).join("")}</ul>
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="sticky-top" style="top: 20px;">
+                                    <h4>${row.URL_ID}</h4>
+                                    <p class="mb-2"><a href="${row.URL}" target="_blank" class="text-secondary">
+                                        <i class="fas fa-external-link-alt me-1"></i>Product Link
+                                    </a></p>
+
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Quick Stats</h5>
+                                            <div class="star-rating mb-2">${createStarRating(row.OVERALL_RATING)}</div>
+                                            <p class="mb-1"><strong>Sentiment:</strong> ${createSentimentBadge(row.OVERALL_SENTIMENT)}</p>
+                                            <p class="mb-1"><strong>Accuracy:</strong> ${row.ACCURACY_SCORE}</p>
+                                            <p class="mb-0"><strong>Total Reviews:</strong> ${summary.total_reviews || 0}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Sentiment Distribution</h5>
+                                            <div class="chart-container" style="height: 200px">
+                                                <canvas id="modal-sentiment-chart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Word Cloud</h5>
+                                            <img src="/static/wordclouds/${wordcloudImg}.png"
+                                                 alt="Word Cloud"
+                                                 class="img-fluid rounded"
+                                                 onerror="this.src='/static/wordclouds/default.png'">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-8">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Key Insights</h5>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="alert alert-success">
+                                                    <h6><i class="fas fa-thumbs-up me-2"></i>Strengths</h6>
+                                                    <ul class="mb-0">
+                                                        ${(summary.keyPoints || ["No key points identified"]).map((p) => `<li>${p}</li>`).join("")}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="alert alert-warning">
+                                                    <h6><i class="fas fa-tools me-2"></i>Improvements</h6>
+                                                    <ul class="mb-0">
+                                                        ${(summary.improvements || ["No improvement suggestions"]).map((p) => `<li>${p}</li>`).join("")}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title d-flex justify-content-between align-items-center">
+                                            Customer Reviews
+                                            <small class="text-muted">Showing ${reviews.length} of ${summary.total_reviews} reviews</small>
+                                        </h5>
+
+                                        <div class="review-list">
+                                            ${reviews
+                                                .map(
+                                                    (review) => `
+                                                <div class="review-item ${review.sentiment} mb-3">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div class="star-rating small">
+                                                            ${createStarRating(review.rating)}
+                                                        </div>
+                                                        <small class="text-muted">${review.date}</small>
+                                                    </div>
+                                                    <p class="review-text mt-2 mb-1">${review.text}</p>
+                                                    <div class="review-meta">
+                                                        <span class="badge bg-${review.sentiment === "positive" ? "success" : review.sentiment === "neutral" ? "warning" : "danger"}">
+                                                            ${review.sentiment}
+                                                        </span>
+                                                        <em>by ${review.author || "Anonymous"}</em>
+                                                    </div>
+                                                </div>
+                                            `,
+                                                )
+                                                .join("")}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 `;
 
-                setTimeout(() => {
-                    new Chart(document.getElementById("sentimentChart"), {
-                        type: "pie",
-                        data: {
-                            labels: ["Positive", "Neutral", "Negative"],
-                            datasets: [
-                                {
-                                    data: [
-                                        row.POSITIVE_REVIEWS,
-                                        row.NEUTRAL_REVIEWS,
-                                        row.NEGATIVE_REVIEWS,
-                                    ],
-                                    backgroundColor: [
-                                        "#4caf50",
-                                        "#ffc107",
-                                        "#f44336",
-                                    ],
-                                },
-                            ],
+                // Create modal sentiment chart
+                const sentimentCtx = document
+                    .getElementById("modal-sentiment-chart")
+                    .getContext("2d");
+                new Chart(sentimentCtx, {
+                    type: "doughnut",
+                    data: {
+                        labels: ["Positive", "Neutral", "Negative"],
+                        datasets: [
+                            {
+                                data: [
+                                    summary.sentiment_breakdown?.positive || 0,
+                                    summary.sentiment_breakdown?.neutral || 0,
+                                    summary.sentiment_breakdown?.negative || 0,
+                                ],
+                                backgroundColor: [
+                                    "#2ecc71",
+                                    "#f39c12",
+                                    "#e74c3c",
+                                ],
+                                borderColor: isDarkMode ? "#121212" : "#ffffff",
+                                borderWidth: 2,
+                            },
+                        ],
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: "bottom" },
+                            tooltip: { enabled: false },
                         },
-                        options: { responsive: true },
-                    });
-                }, 200);
+                    },
+                });
 
                 new bootstrap.Modal(
                     document.getElementById("detailModal"),
                 ).show();
+            }
+            function toggleDarkMode() {
+                document.body.classList.toggle("light-mode");
+                const icon = document.querySelector(".theme-toggle-icon");
+                const text = document.querySelector(".theme-text");
+                isDarkMode = !isDarkMode;
+
+                icon.classList.toggle("fa-moon", isDarkMode);
+                icon.classList.toggle("fa-sun", !isDarkMode);
+                text.textContent = isDarkMode ? "Dark Mode" : "Light Mode";
+                updateChartsTheme();
+            }
+
+            function updateChartsTheme() {
+                Object.values(chartInstances).forEach((chart) => {
+                    chart.options.plugins.legend.labels.color = isDarkMode
+                        ? "#ecf0f1"
+                        : "#2c3e50";
+                    chart.options.scales.x.ticks.color = isDarkMode
+                        ? "#ecf0f1"
+                        : "#2c3e50";
+                    chart.options.scales.y.ticks.color = isDarkMode
+                        ? "#ecf0f1"
+                        : "#2c3e50";
+                    chart.update();
+                });
+            }
+
+            function animateCounter(
+                element,
+                start,
+                end,
+                duration,
+                decimal = 0,
+            ) {
+                let startTime = null;
+                const step = (timestamp) => {
+                    if (!startTime) startTime = timestamp;
+                    const progress = Math.min(
+                        (timestamp - startTime) / duration,
+                        1,
+                    );
+                    element.textContent = (
+                        start +
+                        (end - start) * progress
+                    ).toFixed(decimal);
+                    if (progress < 1) requestAnimationFrame(step);
+                };
+                requestAnimationFrame(step);
+            }
+
+            function showLoading(show) {
+                document.getElementById("loading-container").style.display =
+                    show ? "block" : "none";
+                document.getElementById("upload-form").style.opacity = show
+                    ? 0.5
+                    : 1;
             }
 
             function downloadFile() {
                 window.location.href = "/download";
             }
 
-            function toggleDarkMode() {
-                document.body.classList.toggle("dark-mode");
-            }
-
             async function exportPDF() {
-                const doc = new jspdf.jsPDF();
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
                 const element = document.getElementById("sheet-viewer");
+
                 await html2canvas(element).then((canvas) => {
-                    const imgData = canvas.toDataURL("image/png");
-                    const imgProps = doc.getImageProperties(imgData);
-                    const pdfWidth = doc.internal.pageSize.getWidth();
-                    const pdfHeight =
-                        (imgProps.height * pdfWidth) / imgProps.width;
-                    doc.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-                    doc.save("analysis.pdf");
+                    const img = canvas.toDataURL("image/png");
+                    doc.addImage(img, "PNG", 10, 10, 190, 0);
+                    doc.save("analysis-report.pdf");
                 });
             }
+
+            // Initialize particles
+            function createParticles() {
+                const container = document.getElementById("particles");
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement("div");
+                    particle.className = "particle";
+                    particle.style.cssText = `
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    width: ${Math.random() * 5 + 2}px;
+                    height: ${Math.random() * 5 + 2}px;
+                    animation-duration: ${Math.random() * 20 + 10}s;
+                `;
+                    container.appendChild(particle);
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                createParticles();
+                window.addEventListener("scroll", () => {
+                    document.getElementById("scroll-top").style.display =
+                        window.scrollY > 500 ? "block" : "none";
+                });
+            });
         </script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
