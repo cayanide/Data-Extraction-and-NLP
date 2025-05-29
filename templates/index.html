@@ -3,95 +3,294 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Product Sentiment Analyzer</title>
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-        />
+        <title>Sentiment Analyzer Pro</title>
+        <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
-        <!-- Add your style tag here -->
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: {
+                                50: "#f0f9ff",
+                                100: "#e0f2fe",
+                                200: "#bae6fd",
+                                300: "#7dd3fc",
+                                400: "#38bdf8",
+                                500: "#0ea5e9",
+                                600: "#0284c7",
+                                700: "#0369a1",
+                                800: "#075985",
+                                900: "#0c4a6e",
+                            },
+                        },
+                        animation: {
+                            "pulse-slow":
+                                "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                            "fade-in": "fadeIn 0.5s ease-in forwards",
+                            "slide-up": "slideUp 0.4s ease-out forwards",
+                        },
+                        keyframes: {
+                            fadeIn: {
+                                "0%": { opacity: 0 },
+                                "100%": { opacity: 1 },
+                            },
+                            slideUp: {
+                                "0%": {
+                                    transform: "translateY(20px)",
+                                    opacity: 0,
+                                },
+                                "100%": {
+                                    transform: "translateY(0)",
+                                    opacity: 1,
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+        </script>
         <style>
-            /* Base Styles */
-            :root {
-                --primary-color: #2c3e50;
-                --secondary-color: #1abc9c;
-                --tertiary-color: #3498db;
-                --accent-color: #e74c3c;
-                --light-color: #ecf0f1;
-                --dark-color: #121212;
-                --card-bg: rgba(25, 31, 45, 0.85);
-                --card-border: rgba(255, 255, 255, 0.1);
-                --overlay-bg: rgba(0, 0, 0, 0.7);
-                --success-color: #2ecc71;
-                --warning-color: #f39c12;
-                --danger-color: #e74c3c;
-                --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.1);
-                --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.15);
-                --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.2);
-                --transition-fast: 0.2s ease;
-                --transition-normal: 0.3s ease-in-out;
-                --transition-slow: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                --border-radius-sm: 6px;
-                --border-radius-md: 12px;
-                --border-radius-lg: 20px;
-                --font-main: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-                --font-heading: "Poppins", var(--font-main);
-                --gradient-primary: linear-gradient(
-                    135deg,
-                    #2c3e50 0%,
-                    #1abc9c 100%
-                );
-                --gradient-secondary: linear-gradient(
-                    135deg,
-                    #3498db 0%,
-                    #9b59b6 100%
-                );
-                --gradient-dark: linear-gradient(
-                    135deg,
-                    #121212 0%,
-                    #2c3e50 100%
-                );
+            @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+            body {
+                font-family: "Inter", sans-serif;
+                background-color: #f8fafc;
+                transition:
+                    background-color 0.3s,
+                    color 0.3s;
             }
 
-            @keyframes gradientShift {
+            body.dark {
+                background-color: #0f172a;
+                color: #e2e8f0;
+            }
+
+            .card {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+                transition: all 0.3s ease;
+            }
+
+            .dark .card {
+                background: #1e293b;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+            }
+
+            .stat-card {
+                transition: transform 0.3s ease;
+            }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+            }
+
+            .upload-area {
+                border: 2px dashed #cbd5e1;
+                transition: all 0.3s;
+            }
+
+            .upload-area:hover,
+            .upload-area.drag-over {
+                border-color: #0ea5e9;
+                background-color: #f0f9ff;
+            }
+
+            .dark .upload-area {
+                border-color: #475569;
+            }
+
+            .dark .upload-area:hover,
+            .dark .upload-area.drag-over {
+                border-color: #38bdf8;
+                background-color: #0c4a6e30;
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #0ea5e9, #0284c7);
+                transition: all 0.3s;
+            }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+            }
+
+            .sentiment-badge {
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: 500;
+            }
+
+            .sentiment-badge.positive {
+                background-color: #dcfce7;
+                color: #166534;
+            }
+
+            .dark .sentiment-badge.positive {
+                background-color: #166534;
+                color: #dcfce7;
+            }
+
+            .sentiment-badge.neutral {
+                background-color: #fef9c3;
+                color: #854d0e;
+            }
+
+            .dark .sentiment-badge.neutral {
+                background-color: #854d0e;
+                color: #fef9c3;
+            }
+
+            .sentiment-badge.negative {
+                background-color: #fee2e2;
+                color: #991b1b;
+            }
+
+            .dark .sentiment-badge.negative {
+                background-color: #991b1b;
+                color: #fee2e2;
+            }
+
+            .trend-up {
+                position: relative;
+                padding-right: 20px;
+            }
+
+            .trend-up::after {
+                content: "↑";
+                position: absolute;
+                right: 8px;
+                color: #16a34a;
+            }
+
+            .trend-down {
+                position: relative;
+                padding-right: 20px;
+            }
+
+            .trend-down::after {
+                content: "↓";
+                position: absolute;
+                right: 8px;
+                color: #dc2626;
+            }
+
+            .animate-fade-in {
+                animation: fadeIn 0.6s ease-in forwards;
+            }
+
+            .animate-slide-up {
+                animation: slideUp 0.5s ease-out forwards;
+            }
+
+            .delay-100 {
+                animation-delay: 0.1s;
+            }
+
+            .delay-200 {
+                animation-delay: 0.2s;
+            }
+
+            .delay-300 {
+                animation-delay: 0.3s;
+            }
+
+            .progress-ring {
+                transform: rotate(-90deg);
+            }
+
+            .progress-ring-circle {
+                transition: stroke-dashoffset 0.5s;
+            }
+
+            .smooth-transition {
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+
+            .modal-overlay {
+                background: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(5px);
+            }
+
+            .review-card {
+                position: relative;
+                overflow: hidden;
+            }
+
+            .review-card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 4px;
+                height: 100%;
+            }
+
+            .review-card.positive::before {
+                background-color: #16a34a;
+            }
+
+            .review-card.neutral::before {
+                background-color: #ca8a04;
+            }
+
+            .review-card.negative::before {
+                background-color: #dc2626;
+            }
+
+            .word-cloud-container {
+                background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+                border-radius: 12px;
+                overflow: hidden;
+            }
+
+            .dark .word-cloud-container {
+                background: linear-gradient(135deg, #0c4a6e, #075985);
+            }
+
+            .chart-container {
+                position: relative;
+                height: 300px;
+            }
+
+            .skeleton {
+                background: linear-gradient(
+                    90deg,
+                    #f0f0f0 25%,
+                    #e0e0e0 50%,
+                    #f0f0f0 75%
+                );
+                background-size: 200% 100%;
+                animation: loading 1.5s infinite;
+                border-radius: 6px;
+            }
+
+            .dark .skeleton {
+                background: linear-gradient(
+                    90deg,
+                    #334155 25%,
+                    #475569 50%,
+                    #334155 75%
+                );
+                background-size: 200% 100%;
+            }
+
+            @keyframes loading {
                 0% {
-                    background-position: 0% 50%;
-                }
-                50% {
-                    background-position: 100% 50%;
+                    background-position: 200% 0;
                 }
                 100% {
-                    background-position: 0% 50%;
-                }
-            }
-
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-
-            @keyframes pulse {
-                0% {
-                    transform: scale(1);
-                }
-                50% {
-                    transform: scale(1.05);
-                }
-                100% {
-                    transform: scale(1);
+                    background-position: -200% 0;
                 }
             }
 
@@ -107,1719 +306,1593 @@
                 }
             }
 
-            @keyframes rotating {
-                from {
-                    transform: rotate(0deg);
-                }
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
-            body {
-                font-family: var(--font-main);
-                background: var(--dark-color);
-                color: var(--light-color);
-                margin: 0;
-                padding: 0;
-                overflow-x: hidden;
-                min-height: 100vh;
-                position: relative;
-            }
-
-            .background-animation {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(
-                    -45deg,
-                    #121212,
-                    #1e3b4e,
-                    #164769,
-                    #1a2c38
-                );
-                background-size: 400% 400%;
-                z-index: -1;
-                animation: gradientShift 15s ease infinite;
-            }
-
-            .background-particles {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: -1;
-                overflow: hidden;
-            }
-
-            .particle {
-                position: absolute;
-                border-radius: 50%;
-                background: rgba(255, 255, 255, 0.1);
-                pointer-events: none;
-            }
-
-            .glow {
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                width: 70vw;
-                height: 70vh;
-                transform: translate(-50%, -50%);
-                background: radial-gradient(
-                    ellipse at center,
-                    rgba(26, 188, 156, 0.1) 0%,
-                    rgba(26, 188, 156, 0) 70%
-                );
-                pointer-events: none;
-                z-index: -1;
-            }
-
-            /* Mouse trail effect */
-            .cursor-trail {
-                position: absolute;
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background: rgba(26, 188, 156, 0.7);
-                pointer-events: none;
-                transform: translate(-50%, -50%);
-                transition:
-                    width 0.2s,
-                    height 0.2s,
-                    opacity 1s;
-                z-index: 9999;
-            }
-
-            /* Layout Components */
-            .app-container {
-                max-width: 1400px;
-                margin: 0 auto;
-                padding: 2rem;
-                animation: fadeIn 0.8s var(--transition-normal);
-            }
-
-            .app-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 2.5rem;
-                padding-bottom: 1.5rem;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            }
-
-            .app-title {
-                font-family: var(--font-heading);
-                font-size: 2.5rem;
-                font-weight: 600;
-                color: var(--light-color);
-                margin: 0;
-                position: relative;
-                display: inline-block;
-            }
-
-            .app-title::after {
-                content: "";
-                position: absolute;
-                left: 0;
-                bottom: -5px;
-                width: 60%;
-                height: 3px;
-                background: var(--secondary-color);
-                transition: width var(--transition-normal);
-            }
-
-            .app-title:hover::after {
-                width: 100%;
-            }
-
-            .app-subtitle {
-                font-size: 1rem;
-                font-weight: 300;
-                color: var(--tertiary-color);
-                margin-top: 5px;
-                opacity: 0.8;
-            }
-
-            .header-actions {
-                display: flex;
-                gap: 1rem;
-            }
-
-            /* Cards and Containers */
-            .card {
-                background: var(--card-bg);
-                border-radius: var(--border-radius-md);
-                border: 1px solid var(--card-border);
-                padding: 1.5rem;
-                margin-bottom: 2rem;
-                box-shadow: var(--shadow-md);
-                backdrop-filter: blur(10px);
-                transition:
-                    transform var(--transition-normal),
-                    box-shadow var(--transition-normal);
-            }
-
-            .card:hover {
-                transform: translateY(-5px);
-                box-shadow: var(--shadow-lg);
-            }
-
-            .card-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 1.5rem;
-                padding-bottom: 1rem;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            }
-
-            .card-title {
-                font-size: 1.5rem;
-                font-weight: 600;
-                color: var(--light-color);
-                margin: 0;
-            }
-
-            .card-body {
-                position: relative;
-            }
-
-            /* Form Elements */
-            .form-control {
-                background-color: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                color: var(--light-color);
-                border-radius: var(--border-radius-sm);
-                padding: 0.75rem 1rem;
-                font-size: 1rem;
-                transition: all var(--transition-normal);
-            }
-
-            .form-control:focus {
-                background-color: rgba(255, 255, 255, 0.1);
-                border-color: var(--secondary-color);
-                box-shadow: 0 0 0 0.25rem rgba(26, 188, 156, 0.25);
-                outline: none;
-            }
-
-            .form-control::placeholder {
-                color: rgba(255, 255, 255, 0.5);
-            }
-
-            .form-label {
-                color: var(--light-color);
-                margin-bottom: 0.5rem;
-                font-weight: 500;
-                display: block;
-            }
-
-            .form-text {
-                color: rgba(255, 255, 255, 0.6);
-                font-size: 0.875rem;
-                margin-top: 0.25rem;
-            }
-
-            .file-upload {
-                position: relative;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                min-height: 160px;
-                border: 2px dashed rgba(255, 255, 255, 0.2);
-                border-radius: var(--border-radius-md);
-                background-color: rgba(255, 255, 255, 0.03);
-                padding: 2rem;
-                cursor: pointer;
-                transition: all var(--transition-normal);
-            }
-
-            .file-upload:hover {
-                border-color: var(--secondary-color);
-                background-color: rgba(26, 188, 156, 0.05);
-            }
-
-            .file-upload input[type="file"] {
-                position: absolute;
-                left: 0;
-                top: 0;
-                opacity: 0;
-                width: 100%;
-                height: 100%;
-                cursor: pointer;
-            }
-
-            .file-upload-icon {
-                font-size: 2.5rem;
-                color: var(--secondary-color);
-                margin-bottom: 1rem;
-                animation: float 3s ease-in-out infinite;
-            }
-
-            .file-upload-text {
-                font-size: 1.1rem;
-                text-align: center;
-                color: var(--light-color);
-            }
-
-            .file-upload-info {
-                font-size: 0.9rem;
-                color: rgba(255, 255, 255, 0.6);
-                margin-top: 0.5rem;
-                text-align: center;
-            }
-
-            .file-selected {
-                display: none;
-                margin-top: 1rem;
-                padding: 0.75rem 1rem;
-                background-color: rgba(26, 188, 156, 0.1);
-                border-radius: var(--border-radius-sm);
-                border-left: 3px solid var(--secondary-color);
-            }
-
-            /* Buttons */
-            .btn {
-                border-radius: var(--border-radius-sm);
-                padding: 0.75rem 1.5rem;
-                font-weight: 500;
-                transition: all var(--transition-normal);
-                position: relative;
-                overflow: hidden;
-                z-index: 1;
-                border: none;
-            }
-
-            .btn::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 0;
-                height: 100%;
-                background-color: rgba(255, 255, 255, 0.1);
-                transition: width 0.3s ease;
-                z-index: -1;
-            }
-
-            .btn:hover::before {
-                width: 100%;
-            }
-
-            .btn-primary {
-                background: var(--gradient-primary);
-                color: white;
-                box-shadow: 0 4px 15px rgba(26, 188, 156, 0.3);
-            }
-
-            .btn-primary:hover,
-            .btn-primary:focus {
-                box-shadow: 0 6px 20px rgba(26, 188, 156, 0.4);
-                transform: translateY(-2px);
-                background: var(--gradient-primary);
-                background-position: right center;
-            }
-
-            .btn-secondary {
-                background: var(--gradient-secondary);
-                color: white;
-                box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-            }
-
-            .btn-secondary:hover,
-            .btn-secondary:focus {
-                box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-                transform: translateY(-2px);
-            }
-
-            .btn-outline {
-                background: transparent;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                color: var(--light-color);
-            }
-
-            .btn-outline:hover,
-            .btn-outline:focus {
-                border-color: var(--secondary-color);
-                color: var(--secondary-color);
-            }
-
-            .btn-icon {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.5rem;
-            }
-
-            .btn-icon i {
-                font-size: 1.1rem;
-            }
-
-            .btn-floating {
-                width: 50px;
-                height: 50px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                position: fixed;
-                bottom: 2rem;
-                right: 2rem;
-                box-shadow: var(--shadow-md);
-                z-index: 99;
-            }
-
-            .btn-floating i {
-                font-size: 1.2rem;
-            }
-
-            /* Progress */
-            .progress {
-                height: 8px;
-                background-color: rgba(255, 255, 255, 0.1);
-                border-radius: 4px;
-                overflow: hidden;
-                margin: 1rem 0;
-            }
-
-            .progress-bar {
-                background: var(--gradient-secondary);
-                transition: width 0.3s ease;
-                height: 100%;
-            }
-
-            /* Tables */
-            .table-responsive {
-                border-radius: var(--border-radius-md);
-                overflow: hidden;
-                box-shadow: var(--shadow-md);
-            }
-
-            .table {
-                width: 100%;
-                margin-bottom: 0;
-                color: var(--light-color);
-                border-collapse: collapse;
-            }
-
-            .table th {
-                background-color: rgba(26, 188, 156, 0.2);
-                color: var(--light-color);
-                font-weight: 600;
-                padding: 1rem;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                text-transform: uppercase;
-                font-size: 0.85rem;
-                letter-spacing: 1px;
-            }
-
-            .table td {
-                padding: 1rem;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-                vertical-align: middle;
-                transition: background-color 0.2s ease;
-            }
-
-            .table tbody tr {
-                transition: background-color 0.2s ease;
-            }
-
-            .table tbody tr:hover {
-                background-color: rgba(255, 255, 255, 0.05);
-            }
-
-            .table tbody tr:last-child td {
-                border-bottom: none;
-            }
-
-            /* Modal Styles */
-            .modal-content {
-                background-color: var(--card-bg);
-                border: 1px solid var(--card-border);
-                border-radius: var(--border-radius-md);
-                box-shadow: var(--shadow-lg);
-                backdrop-filter: blur(10px);
-            }
-
-            .modal-header {
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                padding: 1.5rem;
-            }
-
-            .modal-title {
-                color: var(--light-color);
-                font-weight: 600;
-            }
-
-            .modal-body {
-                padding: 1.5rem;
-            }
-
-            .modal-footer {
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-                padding: 1.5rem;
-            }
-
-            .btn-close {
-                color: var(--light-color);
-                text-shadow: none;
-                opacity: 0.7;
-                transition: opacity 0.2s;
-            }
-
-            .btn-close:hover {
-                opacity: 1;
-            }
-
-            /* Chart styles */
-            .chart-container {
-                position: relative;
-                width: 100%;
-                height: 300px;
-                margin: 1.5rem 0;
-            }
-
-            /* Word cloud styling */
-            .wordcloud-container {
-                position: relative;
-                padding: 1rem;
-                background-color: rgba(255, 255, 255, 0.03);
-                border-radius: var(--border-radius-md);
-                transition: all var(--transition-normal);
-            }
-
-            .wordcloud-img {
-                width: 100%;
-                max-height: 300px;
-                object-fit: contain;
-                display: block;
-                margin: 0 auto;
-            }
-
-            /* Stats cards */
-            .stats-container {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-                gap: 1.5rem;
-                margin-bottom: 2rem;
-            }
-
-            .stat-card {
-                background: rgba(255, 255, 255, 0.03);
-                border-radius: var(--border-radius-md);
-                padding: 1.5rem;
-                text-align: center;
-                transition: all var(--transition-normal);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-            }
-
-            .stat-card:hover {
-                transform: translateY(-5px);
-                background: rgba(255, 255, 255, 0.05);
-            }
-
-            .stat-icon {
-                font-size: 2rem;
-                margin-bottom: 1rem;
-                color: var(--secondary-color);
-            }
-
-            .stat-value {
-                font-size: 2rem;
-                font-weight: 700;
-                margin-bottom: 0.5rem;
-                color: var(--light-color);
-            }
-
-            .stat-label {
-                font-size: 0.9rem;
-                color: rgba(255, 255, 255, 0.7);
-                text-transform: uppercase;
-                letter-spacing: 1px;
-            }
-
-            /* Reviews section */
-            .review-list {
-                list-style: none;
-                padding: 0;
-                margin: 1.5rem 0;
-            }
-
-            .review-item {
-                padding: 1rem;
-                border-radius: var(--border-radius-sm);
-                background-color: rgba(255, 255, 255, 0.03);
-                margin-bottom: 1rem;
-                transition: all var(--transition-normal);
-                border-left: 3px solid transparent;
-            }
-
-            .review-item.positive {
-                border-left-color: var(--success-color);
-            }
-
-            .review-item.neutral {
-                border-left-color: var(--warning-color);
-            }
-
-            .review-item.negative {
-                border-left-color: var(--danger-color);
-            }
-
-            .review-item:hover {
-                background-color: rgba(255, 255, 255, 0.05);
-            }
-
-            .review-text {
-                margin-bottom: 0.5rem;
-            }
-
-            .review-meta {
-                display: flex;
-                justify-content: space-between;
-                font-size: 0.85rem;
-                color: rgba(255, 255, 255, 0.6);
-            }
-
-            /* Star ratings */
-            .star-rating {
-                font-size: 1.5rem;
-                letter-spacing: 2px;
-            }
-
-            .star-filled {
-                color: var(--secondary-color);
-            }
-
-            .star-empty {
-                color: rgba(255, 255, 255, 0.2);
-            }
-
-            /* Tooltip */
-            .tooltip {
-                position: absolute;
-                background-color: var(--card-bg);
-                color: var(--light-color);
-                padding: 0.75rem 1rem;
-                border-radius: var(--border-radius-sm);
-                box-shadow: var(--shadow-md);
-                z-index: 100;
-                font-size: 0.9rem;
-                max-width: 200px;
-                opacity: 0;
-                visibility: hidden;
-                transition:
-                    opacity 0.3s,
-                    visibility 0.3s;
-                pointer-events: none;
-            }
-
-            /* Loading Animation */
-            .loader-container {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-direction: column;
-                padding: 2rem;
-            }
-
-            .loading-spinner {
-                width: 50px;
-                height: 50px;
-                border: 3px solid rgba(255, 255, 255, 0.1);
-                border-radius: 50%;
-                border-top-color: var(--secondary-color);
-                animation: rotating 1s linear infinite;
-                margin-bottom: 1rem;
-            }
-
-            .loading-text {
-                font-size: 1rem;
-                color: var(--light-color);
-                margin: 0.5rem 0;
-            }
-
-            /* Data Status */
-            .data-status {
-                font-size: 1rem;
-                padding: 1rem;
-                text-align: center;
-                color: rgba(255, 255, 255, 0.7);
-                margin: 2rem 0;
-            }
-
-            /* Responsive adjustments */
-            @media (max-width: 992px) {
-                .app-header {
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 1rem;
-                }
-
-                .header-actions {
-                    width: 100%;
-                    justify-content: center;
-                }
-
-                .stats-container {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-            }
-
-            @media (max-width: 768px) {
-                .app-container {
-                    padding: 1rem;
-                }
-
-                .app-title {
-                    font-size: 2rem;
-                }
-
-                .card {
-                    padding: 1rem;
-                }
-
-                .stats-container {
-                    grid-template-columns: 1fr;
-                }
-
-                .header-actions {
-                    flex-direction: column;
-                }
-
-                .btn-floating {
-                    bottom: 1rem;
-                    right: 1rem;
-                }
-            }
-
-            /* Utility Classes */
-            .text-secondary {
-                color: var(--secondary-color);
-            }
-
-            .text-muted {
-                color: rgba(255, 255, 255, 0.7); /* or use white */
-            }
-
-            .text-center {
-                text-align: center;
-            }
-
-            .d-flex {
-                display: flex;
-            }
-
-            .justify-content-between {
-                justify-content: space-between;
-            }
-
-            .align-items-center {
-                align-items: center;
-            }
-
-            .flex-column {
-                flex-direction: column;
-            }
-
-            .gap-2 {
-                gap: 0.5rem;
-            }
-
-            .mt-3 {
-                margin-top: 1rem;
-            }
-
-            .mb-3 {
-                margin-bottom: 1rem;
-            }
-
-            .mt-4 {
-                margin-top: 1.5rem;
-            }
-
-            .mb-4 {
-                margin-bottom: 1.5rem;
-            }
-
-            .p-0 {
-                padding: 0;
-            }
-
-            .w-100 {
-                width: 100%;
-            }
-
-            .animate-fadeIn {
-                animation: fadeIn 0.6s var(--transition-normal);
-            }
-
-            .animate-pulse {
-                animation: pulse 2s infinite var(--transition-normal);
-            }
-
-            /* Dark mode toggle */
-            .theme-toggle {
-                background: transparent;
-                border: none;
-                color: var(--light-color);
-                font-size: 1.5rem;
-                cursor: pointer;
-                transition: transform 0.3s ease;
-                outline: none;
-            }
-
-            .theme-toggle:hover {
-                transform: rotate(30deg);
-                color: var(--secondary-color);
-            }
-
-            .theme-toggle-icon {
-                transition: all 0.3s ease;
-            }
-
-            /* Light mode styles */
-            .light-mode {
-                --primary-color: #2c3e50;
-                --secondary-color: #16a085;
-                --tertiary-color: #2980b9;
-                --accent-color: #e74c3c;
-                --light-color: #2c3e50;
-                --dark-color: #f9f9f9;
-                --card-bg: rgba(255, 255, 255, 0.85);
-                --card-border: rgba(0, 0, 0, 0.1);
-                --overlay-bg: rgba(255, 255, 255, 0.8);
-            }
-
-            .light-mode .background-animation {
-                background: linear-gradient(
-                    -45deg,
-                    #f5f7fa,
-                    #e0eafc,
-                    #c9d6ff,
-                    #d7e1ec
-                );
-                background-size: 400% 400%;
-            }
-
-            .light-mode .card {
-                background: var(--card-bg);
-                border: 1px solid var(--card-border);
-            }
-
-            .light-mode .form-control {
-                background-color: rgba(0, 0, 0, 0.03);
-                border: 1px solid rgba(0, 0, 0, 0.1);
-                color: var(--light-color);
-            }
-
-            .light-mode .form-control:focus {
-                background-color: rgba(0, 0, 0, 0.05);
-                border-color: var(--secondary-color);
-            }
-
-            .light-mode .card-header,
-            .light-mode .modal-header,
-            .light-mode .modal-footer {
-                border-color: rgba(0, 0, 0, 0.1);
-            }
-
-            .light-mode .table th {
-                background-color: rgba(22, 160, 133, 0.1);
-                color: var(--primary-color);
-            }
-
-            .light-mode .table td {
-                border-color: rgba(0, 0, 0, 0.05);
-            }
-
-            .light-mode .file-upload {
-                border-color: rgba(0, 0, 0, 0.2);
-                background-color: rgba(0, 0, 0, 0.02);
-            }
-
-            .light-mode .text-muted {
-                color: rgba(0, 0, 0, 0.6);
-            }
-
-            .light-mode .btn-outline {
-                border-color: rgba(0, 0, 0, 0.2);
-                color: var(--primary-color);
-            }
-
-            .light-mode .review-item {
-                background-color: rgba(0, 0, 0, 0.02);
-            }
-
-            .light-mode .review-meta {
-                color: rgba(0, 0, 0, 0.6);
-            }
-
-            .light-mode .star-empty {
-                color: rgba(0, 0, 0, 0.2);
-            }
-
-            .light-mode .glow {
-                background: radial-gradient(
-                    ellipse at center,
-                    rgba(22, 160, 133, 0.1) 0%,
-                    rgba(22, 160, 133, 0) 70%
-                );
-            }
-
-            /* Tooltip showing on hover */
-            [data-tooltip]:hover .tooltip {
-                opacity: 1;
-                visibility: visible;
-            }
-
-            .notification-badge {
-                position: absolute;
-                top: -5px;
-                right: -5px;
-                background-color: var(--accent-color);
-                color: white;
-                border-radius: 50%;
-                width: 20px;
-                height: 20px;
-                font-size: 0.75rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .review-item {
-                padding: 1rem;
-                border-radius: var(--border-radius-sm);
-                background-color: rgba(255, 255, 255, 0.03);
-                transition: all var(--transition-normal);
-                border-left: 3px solid transparent;
-            }
-
-            .review-item.positive {
-                border-left-color: var(--success-color);
-                background-color: rgba(46, 204, 113, 0.05);
-            }
-
-            .review-item.neutral {
-                border-left-color: var(--warning-color);
-                background-color: rgba(243, 156, 18, 0.05);
-            }
-
-            .review-item.negative {
-                border-left-color: var(--danger-color);
-                background-color: rgba(231, 76, 60, 0.05);
-            }
-
-            .star-rating.small {
-                font-size: 1rem;
-            }
-
-            .review-text {
-                line-height: 1.6;
-                color: var(--light-color);
-            }
-
-            .alert-success {
-                background-color: rgba(46, 204, 113, 0.1);
-                border-color: rgba(46, 204, 113, 0.2);
-                color: white;
-            }
-
-            .alert-warning {
-                background-color: rgba(243, 156, 18, 0.1);
-                border-color: rgba(243, 156, 18, 0.2);
-                color: white;
-            }
-
-            .sticky-top {
-                position: -webkit-sticky;
-                position: sticky;
-                z-index: 1;
-            }
-            body:not(.light-mode) .how-it-works-text {
-                color: white !important;
+            .floating {
+                animation: float 4s ease-in-out infinite;
             }
         </style>
     </head>
-    <body>
-        <div class="background-animation"></div>
-        <div class="background-particles" id="particles"></div>
-        <div class="glow"></div>
-
-        <div class="app-container">
-            <header class="app-header">
-                <div>
-                    <h1 class="app-title">
-                        <i class="fas fa-chart-bar me-2"></i>Sentiment Analyzer
-                    </h1>
-                    <p class="app-subtitle">
-                        Analyze product reviews with advanced AI sentiment
-                        analysis
-                    </p>
-                </div>
-                <div class="header-actions">
-                    <button
-                        id="theme-toggle"
-                        class="btn btn-outline btn-icon me-2"
-                    >
-                        <i class="fas fa-moon theme-toggle-icon"></i>
-                        <span class="theme-text">Dark Mode</span>
-                    </button>
-                    <button id="export-pdf" class="btn btn-outline btn-icon">
-                        <i class="fas fa-file-pdf me-2"></i>Export PDF
-                    </button>
-                </div>
-            </header>
-
+    <body class="bg-gray-50 text-gray-800">
+        <!-- Header -->
+        <header
+            class="bg-gradient-to-r from-primary-700 to-primary-900 text-white py-6 px-4 md:px-8 shadow-xl"
+        >
             <div
-                class="stats-container"
-                id="stats-container"
-                style="display: none"
+                class="container mx-auto flex flex-col md:flex-row justify-between items-center"
             >
-                <div class="stat-card animate-fadeIn">
-                    <i class="fas fa-star stat-icon"></i>
-                    <div class="stat-value" id="avg-rating">0.0</div>
-                    <div class="stat-label">Average Rating</div>
+                <div class="flex items-center mb-4 md:mb-0">
+                    <div class="mr-4 bg-white p-2 rounded-full">
+                        <div
+                            class="bg-gradient-to-r from-primary-500 to-primary-700 w-10 h-10 rounded-full flex items-center justify-center"
+                        >
+                            <i class="fas fa-chart-line text-white text-xl"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold">
+                            Sentiment Analyzer Pro
+                        </h1>
+                        <p class="mt-1 text-primary-200 text-sm md:text-base">
+                            AI-powered Amazon Review Analysis
+                        </p>
+                    </div>
                 </div>
-                <div
-                    class="stat-card animate-fadeIn"
-                    style="animation-delay: 0.1s"
-                >
-                    <i class="fas fa-smile stat-icon"></i>
-                    <div class="stat-value" id="positive-count">0</div>
-                    <div class="stat-label">Positive Reviews</div>
-                </div>
-                <div
-                    class="stat-card animate-fadeIn"
-                    style="animation-delay: 0.2s"
-                >
-                    <i class="fas fa-meh stat-icon"></i>
-                    <div class="stat-value" id="neutral-count">0</div>
-                    <div class="stat-label">Neutral Reviews</div>
-                </div>
-                <div
-                    class="stat-card animate-fadeIn"
-                    style="animation-delay: 0.3s"
-                >
-                    <i class="fas fa-frown stat-icon"></i>
-                    <div class="stat-value" id="negative-count">0</div>
-                    <div class="stat-label">Negative Reviews</div>
+
+                <div class="flex space-x-3">
+                    <button
+                        id="darkModeToggle"
+                        class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition flex items-center"
+                    >
+                        <i class="fas fa-moon mr-2"></i>
+                        <span>Dark Mode</span>
+                    </button>
+                    <button
+                        id="exportPDF"
+                        class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition flex items-center"
+                    >
+                        <i class="fas fa-file-pdf mr-2"></i>
+                        <span>Export PDF</span>
+                    </button>
                 </div>
             </div>
+        </header>
 
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Upload Your Data</h2>
-                    <span class="text-muted how-it-works-text"
-                        >Supported formats: .xlsx, .xls</span
-                    >
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Summary Stats -->
+            <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="card stat-card animate-slide-up delay-100">
+                    <div class="p-5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3
+                                    class="text-gray-500 dark:text-gray-400 text-sm font-medium"
+                                >
+                                    Average Rating
+                                </h3>
+                                <p
+                                    id="avgRating"
+                                    class="text-3xl font-bold mt-1"
+                                >
+                                    0.0
+                                </p>
+                            </div>
+                            <div
+                                class="bg-primary-100 dark:bg-primary-900/30 p-3 rounded-lg"
+                            >
+                                <i
+                                    class="fas fa-star text-primary-600 dark:text-primary-400 text-xl"
+                                ></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center">
+                                <div
+                                    class="text-xs text-gray-500 dark:text-gray-400 mr-2"
+                                >
+                                    Overall Rating
+                                </div>
+                                <div
+                                    class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2"
+                                >
+                                    <div
+                                        id="avgRatingBar"
+                                        class="bg-primary-600 h-2 rounded-full"
+                                        style="width: 0%"
+                                    ></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form id="upload-form" enctype="multipart/form-data">
-                        <div class="file-upload" id="drop-area">
+
+                <div class="card stat-card animate-slide-up delay-200">
+                    <div class="p-5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3
+                                    class="text-gray-500 dark:text-gray-400 text-sm font-medium"
+                                >
+                                    Positive Reviews
+                                </h3>
+                                <p
+                                    id="positiveReviews"
+                                    class="text-3xl font-bold mt-1"
+                                >
+                                    0
+                                </p>
+                            </div>
+                            <div
+                                class="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg"
+                            >
+                                <i
+                                    class="fas fa-thumbs-up text-green-600 dark:text-green-400 text-xl"
+                                ></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center text-sm">
+                                <span
+                                    class="text-green-600 dark:text-green-400 font-medium mr-2"
+                                    >+0%</span
+                                >
+                                <span class="text-gray-500 dark:text-gray-400"
+                                    >from last analysis</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card stat-card animate-slide-up delay-300">
+                    <div class="p-5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3
+                                    class="text-gray-500 dark:text-gray-400 text-sm font-medium"
+                                >
+                                    Neutral Reviews
+                                </h3>
+                                <p
+                                    id="neutralReviews"
+                                    class="text-3xl font-bold mt-1"
+                                >
+                                    0
+                                </p>
+                            </div>
+                            <div
+                                class="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-lg"
+                            >
+                                <i
+                                    class="fas fa-meh text-yellow-600 dark:text-yellow-400 text-xl"
+                                ></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center text-sm">
+                                <span
+                                    class="text-yellow-600 dark:text-yellow-400 font-medium mr-2"
+                                    >0%</span
+                                >
+                                <span class="text-gray-500 dark:text-gray-400"
+                                    >consistent</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card stat-card animate-slide-up">
+                    <div class="p-5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3
+                                    class="text-gray-500 dark:text-gray-400 text-sm font-medium"
+                                >
+                                    Negative Reviews
+                                </h3>
+                                <p
+                                    id="negativeReviews"
+                                    class="text-3xl font-bold mt-1"
+                                >
+                                    0
+                                </p>
+                            </div>
+                            <div
+                                class="bg-red-100 dark:bg-red-900/30 p-3 rounded-lg"
+                            >
+                                <i
+                                    class="fas fa-thumbs-down text-red-600 dark:text-red-400 text-xl"
+                                ></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center text-sm">
+                                <span
+                                    class="text-red-600 dark:text-red-400 font-medium mr-2"
+                                    >-0%</span
+                                >
+                                <span class="text-gray-500 dark:text-gray-400"
+                                    >from last analysis</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Section -->
+            <section class="card mb-8 animate-fade-in">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i
+                            class="fas fa-cloud-upload-alt mr-3 text-primary-600"
+                        ></i>
+                        Upload Your Data
+                    </h2>
+                    <p class="mb-4 text-gray-600 dark:text-gray-300">
+                        Upload an Excel file containing product URLs to analyze
+                        customer sentiment. Supported formats: .xlsx, .xls
+                    </p>
+
+                    <div
+                        id="uploadArea"
+                        class="upload-area rounded-xl p-8 text-center cursor-pointer transition-all smooth-transition"
+                    >
+                        <div class="max-w-md mx-auto">
+                            <div class="floating inline-block mb-4">
+                                <div
+                                    class="bg-gradient-to-r from-primary-500 to-primary-700 w-16 h-16 rounded-full flex items-center justify-center"
+                                >
+                                    <i
+                                        class="fas fa-file-excel text-white text-2xl"
+                                    ></i>
+                                </div>
+                            </div>
+                            <h3 class="text-lg font-medium mb-2">
+                                Drag & drop your file here
+                            </h3>
+                            <p class="text-gray-500 dark:text-gray-400 mb-4">
+                                or click to browse files
+                            </p>
                             <input
                                 type="file"
-                                name="file"
-                                id="file"
-                                accept=".xlsx, .xls"
-                                required
+                                id="fileInput"
+                                accept=".xls,.xlsx"
+                                class="hidden"
                             />
-                            <i
-                                class="fas fa-cloud-upload-alt file-upload-icon"
-                            ></i>
-                            <div class="file-upload-text">
-                                Drag & drop your file here
-                            </div>
-                            <div class="file-upload-info">
-                                or click to browse files
-                            </div>
-                            <div class="file-selected" id="file-selected">
-                                <i class="fas fa-file-excel me-2"></i>
-                                <span id="file-name">No file selected</span>
-                            </div>
+                            <button
+                                id="browseBtn"
+                                class="btn-primary px-6 py-3 rounded-lg text-white font-medium inline-flex items-center"
+                            >
+                                <i class="fas fa-folder-open mr-2"></i> Browse
+                                Files
+                            </button>
+                            <p
+                                id="fileName"
+                                class="mt-4 text-gray-500 dark:text-gray-400 text-sm"
+                            >
+                                No file selected
+                            </p>
                         </div>
-                        <button
-                            type="submit"
-                            class="btn btn-primary w-100 mt-4 btn-icon"
-                        >
-                            <i class="fas fa-chart-pie me-2"></i>Upload and
-                            Analyze
-                        </button>
-                    </form>
-                </div>
-            </div>
+                    </div>
 
-            <div
-                id="loading-container"
-                class="loader-container"
-                style="display: none"
-            >
-                <div class="loading-spinner"></div>
-                <p class="loading-text">Analyzing sentiment data...</p>
-                <div class="progress w-100">
+                    <div class="mt-6 flex justify-center">
+                        <button
+                            id="uploadBtn"
+                            class="btn-primary px-8 py-3 rounded-lg text-white font-medium flex items-center"
+                        >
+                            <i class="fas fa-bolt mr-2"></i> Analyze Reviews
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading Indicator -->
+            <section id="loading" class="card hidden mb-8">
+                <div class="p-8 text-center">
+                    <div class="flex justify-center mb-4">
+                        <div
+                            class="w-16 h-16 rounded-full border-4 border-primary-500 border-t-transparent animate-spin"
+                        ></div>
+                    </div>
+                    <h2 class="text-xl font-semibold mb-2">
+                        Analyzing sentiment data...
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        This might take a moment depending on the number of
+                        products
+                    </p>
+                    <div class="mt-6 max-w-md mx-auto">
+                        <div class="grid grid-cols-3 gap-2">
+                            <div
+                                class="h-2 rounded-full bg-primary-600 animate-pulse-slow"
+                            ></div>
+                            <div
+                                class="h-2 rounded-full bg-primary-600 animate-pulse-slow delay-300"
+                            ></div>
+                            <div
+                                class="h-2 rounded-full bg-primary-600 animate-pulse-slow delay-700"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="card hidden animate-fade-in">
+                <div class="p-6">
                     <div
-                        id="progress-bar"
-                        class="progress-bar"
-                        style="width: 0%"
-                    ></div>
-                </div>
-                <p class="text-muted mt-3" style="color: white">
-                    This might take a moment depending on the amount of data
-                </p>
-            </div>
+                        class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6"
+                    >
+                        <h2 class="text-xl font-semibold mb-4 md:mb-0">
+                            <i
+                                class="fas fa-chart-bar text-primary-600 mr-3"
+                            ></i>
+                            Analysis Results
+                        </h2>
+                        <div class="flex space-x-3">
+                            <a
+                                href="/download"
+                                id="downloadLink"
+                                class="btn-primary px-4 py-2 rounded-lg text-white font-medium flex items-center"
+                            >
+                                <i class="fas fa-file-excel mr-2"></i> Export
+                                Excel
+                            </a>
+                            <button
+                                id="compareProducts"
+                                class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 px-4 py-2 rounded-lg transition flex items-center"
+                            >
+                                <i class="fas fa-compress-alt mr-2"></i> Compare
+                                Products
+                            </button>
+                        </div>
+                    </div>
 
-            <div id="sheet-viewer" style="display: none">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Generated Analysis</h2>
-                        <button
-                            class="btn btn-secondary btn-icon"
-                            onclick="downloadFile()"
+                    <div class="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="card p-4">
+                            <h3 class="text-lg font-medium mb-4">
+                                Sentiment Distribution
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="sentimentChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card p-4">
+                            <h3 class="text-lg font-medium mb-4">
+                                Review Insights
+                            </h3>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="text-center">
+                                    <div class="inline-block relative">
+                                        <svg
+                                            width="100"
+                                            height="100"
+                                            viewBox="0 0 100 100"
+                                            class="progress-ring"
+                                        >
+                                            <circle
+                                                cx="50"
+                                                cy="50"
+                                                r="45"
+                                                fill="none"
+                                                stroke="#e2e8f0"
+                                                stroke-width="8"
+                                            />
+                                            <circle
+                                                id="positiveRing"
+                                                cx="50"
+                                                cy="50"
+                                                r="45"
+                                                fill="none"
+                                                stroke="#16a34a"
+                                                stroke-width="8"
+                                                stroke-dasharray="283"
+                                                stroke-dashoffset="283"
+                                                class="progress-ring-circle"
+                                            />
+                                        </svg>
+                                        <div
+                                            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center"
+                                        >
+                                            <div
+                                                id="positivePercent"
+                                                class="text-2xl font-bold"
+                                            >
+                                                0%
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                Positive
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center">
+                                    <div class="inline-block relative">
+                                        <svg
+                                            width="100"
+                                            height="100"
+                                            viewBox="0 0 100 100"
+                                            class="progress-ring"
+                                        >
+                                            <circle
+                                                cx="50"
+                                                cy="50"
+                                                r="45"
+                                                fill="none"
+                                                stroke="#e2e8f0"
+                                                stroke-width="8"
+                                            />
+                                            <circle
+                                                id="neutralRing"
+                                                cx="50"
+                                                cy="50"
+                                                r="45"
+                                                fill="none"
+                                                stroke="#ca8a04"
+                                                stroke-width="8"
+                                                stroke-dasharray="283"
+                                                stroke-dashoffset="283"
+                                                class="progress-ring-circle"
+                                            />
+                                        </svg>
+                                        <div
+                                            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center"
+                                        >
+                                            <div
+                                                id="neutralPercent"
+                                                class="text-2xl font-bold"
+                                            >
+                                                0%
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                Neutral
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center">
+                                    <div class="inline-block relative">
+                                        <svg
+                                            width="100"
+                                            height="100"
+                                            viewBox="0 0 100 100"
+                                            class="progress-ring"
+                                        >
+                                            <circle
+                                                cx="50"
+                                                cy="50"
+                                                r="45"
+                                                fill="none"
+                                                stroke="#e2e8f0"
+                                                stroke-width="8"
+                                            />
+                                            <circle
+                                                id="negativeRing"
+                                                cx="50"
+                                                cy="50"
+                                                r="45"
+                                                fill="none"
+                                                stroke="#dc2626"
+                                                stroke-width="8"
+                                                stroke-dasharray="283"
+                                                stroke-dashoffset="283"
+                                                class="progress-ring-circle"
+                                            />
+                                        </svg>
+                                        <div
+                                            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center"
+                                        >
+                                            <div
+                                                id="negativePercent"
+                                                class="text-2xl font-bold"
+                                            >
+                                                0%
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                Negative
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-6">
+                                <div class="flex items-center mb-2">
+                                    <div
+                                        class="w-3 h-3 rounded-full bg-green-500 mr-2"
+                                    ></div>
+                                    <span class="text-sm"
+                                        >Positive:
+                                        <span id="positiveCount">0</span>
+                                        reviews</span
+                                    >
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <div
+                                        class="w-3 h-3 rounded-full bg-yellow-500 mr-2"
+                                    ></div>
+                                    <span class="text-sm"
+                                        >Neutral:
+                                        <span id="neutralCount">0</span>
+                                        reviews</span
+                                    >
+                                </div>
+                                <div class="flex items-center">
+                                    <div
+                                        class="w-3 h-3 rounded-full bg-red-500 mr-2"
+                                    ></div>
+                                    <span class="text-sm"
+                                        >Negative:
+                                        <span id="negativeCount">0</span>
+                                        reviews</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-lg">
+                        <table class="w-full">
+                            <thead class="bg-gray-100 dark:bg-gray-800">
+                                <tr>
+                                    <th
+                                        class="p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
+                                    >
+                                        Product
+                                    </th>
+                                    <th
+                                        class="p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
+                                    >
+                                        Recommendation
+                                    </th>
+                                    <th
+                                        class="p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
+                                    >
+                                        Sentiment
+                                    </th>
+                                    <th
+                                        class="p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
+                                    >
+                                        Rating
+                                    </th>
+                                    <th
+                                        class="p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
+                                    >
+                                        Accuracy
+                                    </th>
+                                    <th
+                                        class="p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
+                                    >
+                                        Word Cloud
+                                    </th>
+                                    <th
+                                        class="p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
+                                    >
+                                        Details
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody
+                                id="resultsTable"
+                                class="divide-y divide-gray-200 dark:divide-gray-700"
+                            >
+                                <!-- Results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p
+                        id="noResults"
+                        class="mt-6 text-center text-gray-500 dark:text-gray-400 py-8"
+                    >
+                        No results available. Please upload a valid file to
+                        analyze.
+                    </p>
+                </div>
+            </section>
+
+            <!-- How It Works Section -->
+            <section class="mt-12 mb-8">
+                <h2 class="text-2xl font-bold text-center mb-2">
+                    How It Works
+                </h2>
+                <p
+                    class="text-gray-600 dark:text-gray-400 text-center max-w-2xl mx-auto mb-10"
+                >
+                    Sentiment Analyzer Pro uses advanced AI to extract insights
+                    from Amazon reviews, helping you make data-driven decisions
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card p-6 text-center animate-fade-in delay-100">
+                        <div
+                            class="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center mx-auto mb-4"
                         >
-                            <i class="fas fa-download me-2"></i>Download Excel
+                            <i
+                                class="fas fa-upload text-primary-600 dark:text-primary-400 text-2xl"
+                            ></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">
+                            1. Upload Your Data
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-300">
+                            Provide an Excel file with product URLs to analyze
+                        </p>
+                    </div>
+
+                    <div class="card p-6 text-center animate-fade-in delay-200">
+                        <div
+                            class="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-4"
+                        >
+                            <i
+                                class="fas fa-brain text-purple-600 dark:text-purple-400 text-2xl"
+                            ></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">
+                            2. AI Analysis
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-300">
+                            Our AI evaluates review sentiments and extracts
+                            insights
+                        </p>
+                    </div>
+
+                    <div class="card p-6 text-center animate-fade-in delay-300">
+                        <div
+                            class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4"
+                        >
+                            <i
+                                class="fas fa-chart-line text-green-600 dark:text-green-400 text-2xl"
+                            ></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">
+                            3. Actionable Insights
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-300">
+                            Get detailed reports to make informed decisions
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Product Details Modal -->
+        <div id="detailsModal" class="fixed inset-0 z-50 hidden">
+            <div class="modal-overlay absolute inset-0"></div>
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                >
+                    <div
+                        class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center"
+                    >
+                        <h2 class="text-xl font-semibold">Product Insights</h2>
+                        <button
+                            id="closeDetails"
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        >
+                            <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
-                    <div class="card-body">
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="chart-container">
-                                    <canvas id="sentiment-chart"></canvas>
+                    <div id="reviewsList" class="p-6">
+                        <!-- Product details will be loaded here -->
+                        <div class="text-center py-12">
+                            <div class="inline-block mb-4">
+                                <div
+                                    class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+                                >
+                                    <i
+                                        class="fas fa-spinner fa-spin text-gray-400 text-xl"
+                                    ></i>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="chart-container">
-                                    <canvas id="rating-chart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="table-responsive">
-                            <table id="sheet-table" class="table"></table>
+                            <p>Loading product details...</p>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h2 class="card-title">How It Works</h2>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center mb-3">
-                            <i
-                                class="fas fa-upload text-secondary"
-                                style="font-size: 2.5rem"
-                            ></i>
-                            <h5 class="mt-3" style="color: white">
-                                1. Upload Your Data
-                            </h5>
-                            <p
-                                class="text-muted how-it-works-text"
-                                style="color: white"
-                            >
-                                Upload your Excel file containing product
-                                reviews
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-center mb-3">
-                            <i
-                                class="fas fa-robot text-secondary"
-                                style="font-size: 2.5rem"
-                            ></i>
-                            <h5 class="mt-3" style="color: white">
-                                2. AI Analysis
-                            </h5>
-                            <p
-                                class="text-muted how-it-works-text"
-                                style="color: white"
-                            >
-                                Our AI processes the sentiment of each review
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-center mb-3">
-                            <i
-                                class="fas fa-chart-line text-secondary"
-                                style="font-size: 2.5rem"
-                            ></i>
-                            <h5 class="mt-3" style="color: white">
-                                3. Insight Reports
-                            </h5>
-                            <p
-                                class="text-muted how-it-works-text"
-                                style="color: white"
-                            >
-                                View detailed analysis and export the results
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <button class="btn-floating btn-primary" id="scroll-top">
-            <i class="fas fa-arrow-up"></i>
-        </button>
-
-        <div
-            class="modal fade"
-            id="detailModal"
-            tabindex="-1"
-            aria-hidden="true"
-        >
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Product Details</h5>
+                    <div
+                        class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3"
+                    >
                         <button
-                            type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"
-                        ></button>
-                    </div>
-                    <div class="modal-body" id="modal-body"></div>
-                    <div class="modal-footer">
-                        <button
-                            type="button"
-                            class="btn btn-outline"
-                            data-bs-dismiss="modal"
+                            id="closeDetailsBtn"
+                            class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
                         >
                             Close
                         </button>
                         <button
-                            type="button"
-                            class="btn btn-primary"
-                            id="export-product-detail"
+                            id="exportDetails"
+                            class="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition flex items-center"
                         >
-                            <i class="fas fa-file-export me-2"></i>Export
-                            Details
+                            <i class="fas fa-file-pdf mr-2"></i> Export PDF
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Product Comparison Modal -->
+        <div id="comparisonModal" class="fixed inset-0 z-50 hidden">
+            <div class="modal-overlay absolute inset-0"></div>
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                >
+                    <div
+                        class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center"
+                    >
+                        <h2 class="text-xl font-semibold">
+                            Product Comparison
+                        </h2>
+                        <button
+                            id="closeComparison"
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        >
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div id="comparisonContent" class="p-6">
+                        <!-- Comparison content will be loaded here -->
+                        <div class="text-center py-12">
+                            <div class="inline-block mb-4">
+                                <div
+                                    class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+                                >
+                                    <i
+                                        class="fas fa-balance-scale text-gray-400 text-xl"
+                                    ></i>
+                                </div>
+                            </div>
+                            <p>Select products to compare</p>
+                        </div>
+                    </div>
+                    <div
+                        class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end"
+                    >
+                        <button
+                            id="closeComparisonBtn"
+                            class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-gray-100 dark:bg-gray-900 py-8 mt-12">
+            <div class="container mx-auto px-4 text-center">
+                <p class="text-gray-600 dark:text-gray-400">
+                    Sentiment Analyzer Pro &copy; 2023 | AI-Powered Amazon
+                    Review Analysis
+                </p>
+                <div class="mt-4 flex justify-center space-x-4">
+                    <a
+                        href="#"
+                        class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400"
+                    >
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a
+                        href="#"
+                        class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400"
+                    >
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a
+                        href="#"
+                        class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400"
+                    >
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                </div>
+            </div>
+        </footer>
+
         <script>
-            let currentProductData = null;
-            let chartInstances = {};
-            let sheetData = [];
-            let isDarkMode = true;
+            // DOM Elements
+            const fileInput = document.getElementById("fileInput");
+            const fileName = document.getElementById("fileName");
+            const uploadBtn = document.getElementById("uploadBtn");
+            const browseBtn = document.getElementById("browseBtn");
+            const uploadArea = document.getElementById("uploadArea");
+            const loading = document.getElementById("loading");
+            const resultsSection = document.getElementById("resultsSection");
+            const downloadLink = document.getElementById("downloadLink");
+            const resultsTable = document.getElementById("resultsTable");
+            const noResults = document.getElementById("noResults");
+            const detailsModal = document.getElementById("detailsModal");
+            const closeDetails = document.getElementById("closeDetails");
+            const closeDetailsBtn = document.getElementById("closeDetailsBtn");
+            const reviewsList = document.getElementById("reviewsList");
+            const exportDetails = document.getElementById("exportDetails");
+            const darkModeToggle = document.getElementById("darkModeToggle");
+            const exportPDF = document.getElementById("exportPDF");
+            const sentimentChartCanvas =
+                document.getElementById("sentimentChart");
+            const compareProductsBtn =
+                document.getElementById("compareProducts");
+            const comparisonModal = document.getElementById("comparisonModal");
+            const closeComparison = document.getElementById("closeComparison");
+            const closeComparisonBtn =
+                document.getElementById("closeComparisonBtn");
+            const comparisonContent =
+                document.getElementById("comparisonContent");
 
-            document
-                .getElementById("theme-toggle")
-                .addEventListener("click", toggleDarkMode);
-            document
-                .getElementById("scroll-top")
-                .addEventListener("click", () =>
-                    window.scrollTo({ top: 0, behavior: "smooth" }),
-                );
-            document
-                .getElementById("export-pdf")
-                .addEventListener("click", exportPDF);
+            // State
+            let chartInstance = null;
+            let currentResults = [];
+            let isDarkMode = false;
+            let currentProductDetails = null;
 
-            document
-                .getElementById("file")
-                .addEventListener("change", function (e) {
-                    const fileSelected =
-                        document.getElementById("file-selected");
-                    const fileName = document.getElementById("file-name");
-                    fileSelected.style.display = this.files.length
-                        ? "block"
-                        : "none";
-                    fileName.textContent = this.files.length
-                        ? this.files[0].name
-                        : "No file selected";
+            // Initialize
+            document.addEventListener("DOMContentLoaded", function () {
+                // Set dark mode if previously selected
+                if (localStorage.getItem("darkMode") === "true") {
+                    toggleDarkMode();
+                }
+
+                // Check for existing results
+                fetchResults();
+
+                // Set up event listeners
+                setupEventListeners();
+            });
+
+            function setupEventListeners() {
+                // Dark mode toggle
+                darkModeToggle.addEventListener("click", toggleDarkMode);
+
+                // File input handling
+                browseBtn.addEventListener("click", () => fileInput.click());
+                fileInput.addEventListener("change", handleFileSelect);
+
+                // Drag and drop handling
+                uploadArea.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add("drag-over");
                 });
 
-            document
-                .getElementById("upload-form")
-                .addEventListener("submit", async function (e) {
+                uploadArea.addEventListener("dragleave", () => {
+                    uploadArea.classList.remove("drag-over");
+                });
+
+                uploadArea.addEventListener("drop", (e) => {
                     e.preventDefault();
-                    const fileInput = document.getElementById("file");
-                    if (!fileInput.files.length)
-                        return alert("Please select a file");
+                    uploadArea.classList.remove("drag-over");
 
-                    const formData = new FormData();
-                    formData.append("file", fileInput.files[0]);
-
-                    showLoading(true);
-                    try {
-                        const response = await fetch("/upload", {
-                            method: "POST",
-                            body: formData,
-                        });
-
-                        const data = await response.json();
-                        if (data.error) throw new Error(data.error);
-
-                        await loadAnalysisData();
-                        showLoading(false);
-                    } catch (error) {
-                        showLoading(false);
-                        alert(`Error: ${error.message}`);
+                    if (e.dataTransfer.files.length) {
+                        fileInput.files = e.dataTransfer.files;
+                        handleFileSelect();
                     }
                 });
 
-            async function loadAnalysisData() {
+                // Upload button
+                uploadBtn.addEventListener("click", uploadFile);
+
+                // Close modals
+                closeDetails.addEventListener("click", () =>
+                    detailsModal.classList.add("hidden"),
+                );
+                closeDetailsBtn.addEventListener("click", () =>
+                    detailsModal.classList.add("hidden"),
+                );
+                closeComparison.addEventListener("click", () =>
+                    comparisonModal.classList.add("hidden"),
+                );
+                closeComparisonBtn.addEventListener("click", () =>
+                    comparisonModal.classList.add("hidden"),
+                );
+
+                // Export PDFs
+                exportPDF.addEventListener("click", exportToPDF);
+                exportDetails.addEventListener("click", exportDetailsToPDF);
+            }
+
+            function handleFileSelect() {
+                if (fileInput.files.length) {
+                    fileName.textContent = fileInput.files[0].name;
+                } else {
+                    fileName.textContent = "No file selected";
+                }
+            }
+
+            function toggleDarkMode() {
+                isDarkMode = !isDarkMode;
+                document.body.classList.toggle("dark", isDarkMode);
+                localStorage.setItem("darkMode", isDarkMode);
+                darkModeToggle
+                    .querySelector("i")
+                    .classList.toggle("fa-moon", !isDarkMode);
+                darkModeToggle
+                    .querySelector("i")
+                    .classList.toggle("fa-sun", isDarkMode);
+                darkModeToggle.querySelector("span").textContent = isDarkMode
+                    ? "Light Mode"
+                    : "Dark Mode";
+
+                // Re-render chart with updated theme
+                if (chartInstance) {
+                    drawPieChart(currentResults);
+                }
+            }
+
+            async function uploadFile() {
+                if (!fileInput.files.length) {
+                    alert("Please select a file to upload.");
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append("file", fileInput.files[0]);
+
+                // Show loading state
+                loading.classList.remove("hidden");
+                resultsSection.classList.add("hidden");
+                noResults.classList.add("hidden");
+                downloadLink.classList.add("hidden");
+
                 try {
-                    const response = await fetch("/download");
-                    const data = await response.arrayBuffer();
-                    const workbook = XLSX.read(data, { type: "array" });
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    const response = await fetch("/upload", {
+                        method: "POST",
+                        body: formData,
+                    });
 
-                    updateStats(jsonData);
-                    renderDataTable(jsonData);
-                    createCharts(jsonData);
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || "Upload failed");
+                    }
 
-                    document.getElementById("stats-container").style.display =
-                        "flex";
-                    document.getElementById("sheet-viewer").style.display =
-                        "block";
+                    const result = await response.json();
+
+                    // Wait for backend processing
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+                    // Fetch and display results
+                    await fetchResults();
+
+                    // Show download link
+                    downloadLink.classList.remove("hidden");
                 } catch (error) {
-                    console.error("Error loading data:", error);
+                    console.error("Upload error:", error);
+                    alert(`Upload failed: ${error.message}`);
+                    noResults.classList.remove("hidden");
+                } finally {
+                    loading.classList.add("hidden");
                 }
             }
 
-            function updateStats(data) {
-                const totals = data.reduce(
-                    (acc, item) => ({
-                        positive: acc.positive + (item.POSITIVE_REVIEWS || 0),
-                        neutral: acc.neutral + (item.NEUTRAL_REVIEWS || 0),
-                        negative: acc.negative + (item.NEGATIVE_REVIEWS || 0),
-                        rating:
-                            acc.rating + (parseFloat(item.OVERALL_RATING) || 0),
-                    }),
-                    { positive: 0, neutral: 0, negative: 0, rating: 0 },
-                );
+            async function fetchResults() {
+                try {
+                    const response = await fetch("/results");
 
-                animateCounter(
-                    document.getElementById("avg-rating"),
-                    0,
-                    totals.rating / data.length,
-                    1000,
-                    1,
-                );
-                animateCounter(
-                    document.getElementById("positive-count"),
-                    0,
-                    totals.positive,
-                    1000,
-                );
-                animateCounter(
-                    document.getElementById("neutral-count"),
-                    0,
-                    totals.neutral,
-                    1000,
-                );
-                animateCounter(
-                    document.getElementById("negative-count"),
-                    0,
-                    totals.negative,
-                    1000,
-                );
-            }
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch results");
+                    }
 
-            function renderDataTable(data) {
-                const table = document.getElementById("sheet-table");
-                table.innerHTML = "";
-                if (!data.length) return;
+                    const results = await response.json();
 
-                const headers = Object.keys(data[0]).filter(
-                    (key) => key !== "FULL_ANALYSIS",
-                );
-                const headerRow = table.insertRow();
-                headers.forEach((header) => {
-                    const th = document.createElement("th");
-                    th.textContent = header.replace(/_/g, " ");
-                    headerRow.appendChild(th);
-                });
+                    if (results.error) {
+                        throw new Error(results.error);
+                    }
 
-                data.forEach((row) => {
-                    const tr = table.insertRow();
-                    tr.style.cursor = "pointer";
-                    tr.addEventListener("click", () => showDetails(row));
+                    // Filter out any invalid results
+                    currentResults = results.filter(
+                        (result) =>
+                            result && result.URL_ID && result.OVERALL_SENTIMENT,
+                    );
 
-                    headers.forEach((header) => {
-                        const td = tr.insertCell();
-                        if (header === "OVERALL_RATING") {
-                            td.innerHTML = createStarRating(row[header]);
-                        } else if (header === "OVERALL_SENTIMENT") {
-                            td.innerHTML = createSentimentBadge(row[header]);
-                        } else if (header.toLowerCase().includes("url")) {
-                            td.innerHTML = `<a href="${row[header]}" target="_blank">View Product</a>`;
-                        } else {
-                            td.textContent = row[header];
-                        }
-                    });
-                });
-            }
-
-            function createStarRating(rating) {
-                let stars = "";
-                for (let i = 0; i < 5; i++) {
-                    stars +=
-                        i < Math.floor(rating)
-                            ? '<i class="fas fa-star star-filled"></i>'
-                            : i === Math.floor(rating) && rating % 1 >= 0.5
-                              ? '<i class="fas fa-star-half-alt star-filled"></i>'
-                              : '<i class="far fa-star star-empty"></i>';
+                    if (currentResults.length) {
+                        updateSummaryStats(currentResults);
+                        populateResultsTable(currentResults);
+                        drawPieChart(currentResults);
+                        resultsSection.classList.remove("hidden");
+                        noResults.classList.add("hidden");
+                    } else {
+                        resultsSection.classList.add("hidden");
+                        noResults.classList.remove("hidden");
+                    }
+                } catch (error) {
+                    console.error("Error fetching results:", error);
+                    resultsSection.classList.add("hidden");
+                    noResults.classList.remove("hidden");
                 }
-                return `<div class="star-rating">${stars} <span>${rating}</span></div>`;
             }
 
-            function createSentimentBadge(sentiment) {
-                const colors = {
-                    Positive: "success",
-                    Neutral: "warning",
-                    Negative: "danger",
-                };
-                return `<span class="badge bg-${colors[sentiment]}">${sentiment}</span>`;
-            }
+            function updateSummaryStats(results) {
+                if (!results.length) return;
 
-            function createCharts(data) {
-                createSentimentChart(data);
-                createRatingChart(data);
-            }
+                // Calculate totals
+                let totalRating = 0;
+                let totalPositive = 0;
+                let totalNeutral = 0;
+                let totalNegative = 0;
+                let totalReviews = 0;
 
-            function createSentimentChart(data) {
-                const ctx = document
-                    .getElementById("sentiment-chart")
-                    .getContext("2d");
-                const totals = data.reduce(
-                    (acc, item) => ({
-                        positive: acc.positive + (item.POSITIVE_REVIEWS || 0),
-                        neutral: acc.neutral + (item.NEUTRAL_REVIEWS || 0),
-                        negative: acc.negative + (item.NEGATIVE_REVIEWS || 0),
-                    }),
-                    { positive: 0, neutral: 0, negative: 0 },
-                );
-
-                if (chartInstances.sentiment)
-                    chartInstances.sentiment.destroy();
-
-                chartInstances.sentiment = new Chart(ctx, {
-                    type: "doughnut",
-                    data: {
-                        labels: ["Positive", "Neutral", "Negative"],
-                        datasets: [
-                            {
-                                data: [
-                                    totals.positive,
-                                    totals.neutral,
-                                    totals.negative,
-                                ],
-                                backgroundColor: [
-                                    "#2ecc71",
-                                    "#f39c12",
-                                    "#e74c3c",
-                                ],
-                            },
-                        ],
-                    },
+                results.forEach((result) => {
+                    totalRating += parseFloat(result.OVERALL_RATING) || 0;
+                    totalPositive += parseInt(result.POSITIVE_REVIEWS) || 0;
+                    totalNeutral += parseInt(result.NEUTRAL_REVIEWS) || 0;
+                    totalNegative += parseInt(result.NEGATIVE_REVIEWS) || 0;
+                    totalReviews += parseInt(result.TOTAL_REVIEWS) || 0;
                 });
+
+                // Update DOM
+                const avgRating = (totalRating / results.length).toFixed(1);
+                document.getElementById("avgRating").textContent = avgRating;
+                document.getElementById("positiveReviews").textContent =
+                    totalPositive;
+                document.getElementById("neutralReviews").textContent =
+                    totalNeutral;
+                document.getElementById("negativeReviews").textContent =
+                    totalNegative;
+
+                // Update rating bar
+                const ratingPercentage = (avgRating / 5) * 100;
+                document.getElementById("avgRatingBar").style.width =
+                    `${ratingPercentage}%`;
+
+                // Update sentiment percentages
+                if (totalReviews > 0) {
+                    const positivePercent = Math.round(
+                        (totalPositive / totalReviews) * 100,
+                    );
+                    const neutralPercent = Math.round(
+                        (totalNeutral / totalReviews) * 100,
+                    );
+                    const negativePercent = Math.round(
+                        (totalNegative / totalReviews) * 100,
+                    );
+
+                    document.getElementById("positivePercent").textContent =
+                        `${positivePercent}%`;
+                    document.getElementById("neutralPercent").textContent =
+                        `${neutralPercent}%`;
+                    document.getElementById("negativePercent").textContent =
+                        `${negativePercent}%`;
+
+                    document.getElementById("positiveCount").textContent =
+                        totalPositive;
+                    document.getElementById("neutralCount").textContent =
+                        totalNeutral;
+                    document.getElementById("negativeCount").textContent =
+                        totalNegative;
+
+                    // Update progress rings
+                    updateProgressRing("positiveRing", positivePercent);
+                    updateProgressRing("neutralRing", neutralPercent);
+                    updateProgressRing("negativeRing", negativePercent);
+                }
             }
 
-            function createRatingChart(data) {
-                const ctx = document
-                    .getElementById("rating-chart")
-                    .getContext("2d");
-                const ratings = [0, 0, 0, 0, 0];
+            function updateProgressRing(ringId, percent) {
+                const circle = document.getElementById(ringId);
+                const radius = 45;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference - (percent / 100) * circumference;
 
-                data.forEach((item) => {
-                    const analysis = JSON.parse(item.FULL_ANALYSIS || "{}");
-                    (analysis.reviews || []).forEach((review) => {
-                        const rating = Math.floor(review.rating || 0);
-                        if (rating >= 1 && rating <= 5) ratings[rating - 1]++;
+                circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                circle.style.strokeDashoffset = offset;
+            }
+
+            function populateResultsTable(results) {
+                resultsTable.innerHTML = "";
+
+                results.forEach((result) => {
+                    const sentiment = result.OVERALL_SENTIMENT.toLowerCase();
+                    const recommendation =
+                        sentiment === "positive"
+                            ? '<span class="text-green-600 font-medium">Recommended</span>'
+                            : '<span class="text-red-600 font-medium">Not Recommended</span>';
+
+                    const sentimentBadge = `<span class="sentiment-badge ${sentiment}">${result.OVERALL_SENTIMENT}</span>`;
+
+                    const safeId = result.URL_ID.replace(/\W+/g, "_");
+                    const wordCloudUrl = `/static/wordclouds/${safeId}.png`;
+
+                    const row = document.createElement("tr");
+                    row.className =
+                        "hover:bg-gray-50 dark:hover:bg-gray-800/50 transition";
+                    row.innerHTML = `
+                        <td class="p-3">
+                            <a href="${result.URL}" target="_blank" class="font-medium text-primary-600 dark:text-primary-400 hover:underline">${result.URL_ID}</a>
+                        </td>
+                        <td class="p-3">${recommendation}</td>
+                        <td class="p-3">${sentimentBadge}</td>
+                        <td class="p-3">
+                            <div class="flex items-center">
+                                <span>${result.OVERALL_RATING}</span>
+                                <i class="fas fa-star text-yellow-400 ml-1"></i>
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <div class="flex items-center">
+                                <div class="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
+                                    <div class="bg-primary-600 h-2 rounded-full" style="width: ${result.ACCURACY_SCORE.replace("%", "")}%"></div>
+                                </div>
+                                <span>${result.ACCURACY_SCORE}</span>
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <img src="${wordCloudUrl}"
+                                 onerror="this.src='/static/wordclouds/default.png'"
+                                 class="w-32 h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+                        </td>
+                        <td class="p-3">
+                            <button class="details-btn px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
+                                    data-id="${result.URL_ID}">
+                                <i class="fas fa-eye mr-1"></i> View
+                            </button>
+                        </td>
+                    `;
+
+                    // Add event listener to the details button
+                    const detailsBtn = row.querySelector(".details-btn");
+                    detailsBtn.addEventListener("click", function () {
+                        const productId = this.dataset.id;
+                        fetchProductDetails(productId);
                     });
-                });
 
-                if (chartInstances.rating) chartInstances.rating.destroy();
-
-                chartInstances.rating = new Chart(ctx, {
-                    type: "bar",
-                    data: {
-                        labels: [
-                            "1 Star",
-                            "2 Stars",
-                            "3 Stars",
-                            "4 Stars",
-                            "5 Stars",
-                        ],
-                        datasets: [
-                            {
-                                label: "Reviews",
-                                data: ratings,
-                                backgroundColor: [
-                                    "#e74c3c",
-                                    "#e67e22",
-                                    "#f39c12",
-                                    "#27ae60",
-                                    "#2ecc71",
-                                ],
-                            },
-                        ],
-                    },
+                    resultsTable.appendChild(row);
                 });
             }
 
-            function showDetails(row) {
-                const modalBody = document.getElementById("modal-body");
-                const analysis = JSON.parse(row.FULL_ANALYSIS || "{}");
-                const reviews = analysis.reviews || [];
-                const summary = analysis.summary || {};
-                const wordcloudImg = encodeURIComponent(row.URL_ID);
+            async function fetchProductDetails(productId) {
+                // Show loading state in modal
+                reviewsList.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="inline-block mb-4">
+                            <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                                <i class="fas fa-spinner fa-spin text-gray-400 text-xl"></i>
+                            </div>
+                        </div>
+                        <p>Loading product details...</p>
+                    </div>
+                `;
+                detailsModal.classList.remove("hidden");
 
-                modalBody.innerHTML = `
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="sticky-top" style="top: 20px;">
-                                    <h4>${row.URL_ID}</h4>
-                                    <p class="mb-2"><a href="${row.URL}" target="_blank" class="text-secondary">
-                                        <i class="fas fa-external-link-alt me-1"></i>Product Link
-                                    </a></p>
+                try {
+                    const response = await fetch(
+                        `/product-details/${encodeURIComponent(productId)}`,
+                    );
 
-                                    <div class="card mb-3">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Quick Stats</h5>
-                                            <div class="star-rating mb-2">${createStarRating(row.OVERALL_RATING)}</div>
-                                            <p class="mb-1"><strong>Sentiment:</strong> ${createSentimentBadge(row.OVERALL_SENTIMENT)}</p>
-                                            <p class="mb-1"><strong>Accuracy:</strong> ${row.ACCURACY_SCORE}</p>
-                                            <p class="mb-0"><strong>Total Reviews:</strong> ${summary.total_reviews || 0}</p>
-                                        </div>
-                                    </div>
+                    if (!response.ok) {
+                        throw new Error(
+                            `Server responded with ${response.status}`,
+                        );
+                    }
 
-                                    <div class="card mb-3">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Sentiment Distribution</h5>
-                                            <div class="chart-container" style="height: 200px">
-                                                <canvas id="modal-sentiment-chart"></canvas>
-                                            </div>
-                                        </div>
-                                    </div>
+                    const data = await response.json();
 
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Word Cloud</h5>
-                                            <img src="/static/wordclouds/${wordcloudImg}.png"
-                                                 alt="Word Cloud"
-                                                 class="img-fluid rounded"
-                                                 onerror="this.src='/static/wordclouds/default.png'">
-                                        </div>
-                                    </div>
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    currentProductDetails = data;
+                    showProductDetails(data);
+                } catch (error) {
+                    console.error("Error loading product details:", error);
+                    reviewsList.innerHTML = `
+                        <div class="text-center py-12">
+                            <div class="inline-block mb-4">
+                                <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                                    <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
                                 </div>
                             </div>
+                            <p class="text-red-500">Failed to load product details</p>
+                            <p class="text-gray-500 dark:text-gray-400 mt-2">${error.message}</p>
+                        </div>
+                    `;
+                }
+            }
 
-                            <div class="col-md-8">
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Key Insights</h5>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="alert alert-success">
-                                                    <h6><i class="fas fa-thumbs-up me-2"></i>Strengths</h6>
-                                                    <ul class="mb-0">
-                                                        ${(summary.keyPoints || ["No key points identified"]).map((p) => `<li>${p}</li>`).join("")}
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="alert alert-warning">
-                                                    <h6><i class="fas fa-tools me-2"></i>Improvements</h6>
-                                                    <ul class="mb-0">
-                                                        ${(summary.improvements || ["No improvement suggestions"]).map((p) => `<li>${p}</li>`).join("")}
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+            function showProductDetails(analysis) {
+                // Clear previous content
+                reviewsList.innerHTML = "";
 
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h5 class="card-title d-flex justify-content-between align-items-center">
-                                            Customer Reviews
-                                            <small class="text-muted">Showing ${reviews.length} of ${summary.total_reviews} reviews</small>
-                                        </h5>
+                // Add header section
+                const header = document.createElement("div");
+                header.className =
+                    "mb-6 pb-4 border-b border-gray-200 dark:border-gray-700";
+                header.innerHTML = `
+                    <h3 class="text-xl font-semibold">${analysis.product_id || "Product Analysis"}</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mt-1">${analysis.product_url || ""}</p>
 
-                                        <div class="review-list">
-                                            ${reviews
-                                                .map(
-                                                    (review) => `
-                                                <div class="review-item ${review.sentiment} mb-3">
-                                                    <div class="d-flex justify-content-between align-items-start">
-                                                        <div class="star-rating small">
-                                                            ${createStarRating(review.rating)}
-                                                        </div>
-                                                        <small class="text-muted">${review.date}</small>
-                                                    </div>
-                                                    <p class="review-text mt-2 mb-1">${review.text}</p>
-                                                    <div class="review-meta">
-                                                        <span class="badge bg-${review.sentiment === "positive" ? "success" : review.sentiment === "neutral" ? "warning" : "danger"}">
-                                                            ${review.sentiment}
-                                                        </span>
-                                                        <em>by ${review.author || "Anonymous"}</em>
-                                                    </div>
-                                                </div>
-                                            `,
-                                                )
-                                                .join("")}
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                        <div class="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4">
+                            <div class="text-gray-500 dark:text-gray-400">Overall Rating</div>
+                            <div class="flex items-center mt-1">
+                                <span class="text-2xl font-bold">${analysis.summary?.average_rating || "0.0"}</span>
+                                <i class="fas fa-star text-yellow-400 ml-1"></i>
                             </div>
+                        </div>
+
+                        <div class="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4">
+                            <div class="text-gray-500 dark:text-gray-400">Total Reviews</div>
+                            <div class="text-2xl font-bold mt-1">${analysis.summary?.total_reviews || "0"}</div>
+                        </div>
+
+                        <div class="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4">
+                            <div class="text-gray-500 dark:text-gray-400">Overall Sentiment</div>
+                            <div class="mt-1">
+                                <span class="sentiment-badge ${analysis.summary?.overall_sentiment?.toLowerCase() || "neutral"}">
+                                    ${analysis.summary?.overall_sentiment || "Unknown"}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4">
+                            <div class="text-gray-500 dark:text-gray-400">Accuracy</div>
+                            <div class="text-2xl font-bold mt-1">${analysis.summary?.accuracy_score || "0.0"}%</div>
                         </div>
                     </div>
                 `;
+                reviewsList.appendChild(header);
 
-                // Create modal sentiment chart
-                const sentimentCtx = document
-                    .getElementById("modal-sentiment-chart")
-                    .getContext("2d");
-                new Chart(sentimentCtx, {
-                    type: "doughnut",
+                // Add reviews section
+                const reviewsHeader = document.createElement("h4");
+                reviewsHeader.className = "text-lg font-semibold mb-4 mt-6";
+                reviewsHeader.textContent = "Customer Reviews";
+                reviewsList.appendChild(reviewsHeader);
+
+                // Add reviews
+                if (analysis.reviews && analysis.reviews.length) {
+                    analysis.reviews.slice(0, 5).forEach((review) => {
+                        const reviewCard = document.createElement("div");
+                        reviewCard.className = `review-card ${review.sentiment?.toLowerCase() || "neutral"} mb-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/30`;
+
+                        const sentimentClass =
+                            review.sentiment?.toLowerCase() || "neutral";
+                        const sentimentIcon =
+                            sentimentClass === "positive"
+                                ? "fa-thumbs-up text-green-500"
+                                : sentimentClass === "negative"
+                                  ? "fa-thumbs-down text-red-500"
+                                  : "fa-meh text-yellow-500";
+
+                        reviewCard.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-medium">${review.author || "Anonymous"}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">${review.date || "Unknown date"}</div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="mr-2">
+                                        ${review.rating ? `<span class="font-medium">${review.rating}</span> <i class="fas fa-star text-yellow-400"></i>` : ""}
+                                    </div>
+                                    <i class="fas ${sentimentIcon}"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-gray-700 dark:text-gray-300">
+                                ${review.text || "No review text available."}
+                            </div>
+                        `;
+                        reviewsList.appendChild(reviewCard);
+                    });
+
+                    if (analysis.reviews.length > 5) {
+                        const moreText = document.createElement("p");
+                        moreText.className =
+                            "text-center text-gray-500 dark:text-gray-400 mt-4";
+                        moreText.textContent = `+${analysis.reviews.length - 5} more reviews available...`;
+                        reviewsList.appendChild(moreText);
+                    }
+                } else {
+                    const noReviews = document.createElement("p");
+                    noReviews.className =
+                        "text-gray-500 dark:text-gray-400 text-center py-4";
+                    noReviews.textContent =
+                        "No reviews available for this product.";
+                    reviewsList.appendChild(noReviews);
+                }
+            }
+
+            function drawPieChart(results) {
+                const ctx = sentimentChartCanvas.getContext("2d");
+
+                // Destroy previous chart instance if exists
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                // Calculate sentiment totals
+                let totalPositive = 0;
+                let totalNeutral = 0;
+                let totalNegative = 0;
+
+                results.forEach((result) => {
+                    totalPositive += parseInt(result.POSITIVE_REVIEWS) || 0;
+                    totalNeutral += parseInt(result.NEUTRAL_REVIEWS) || 0;
+                    totalNegative += parseInt(result.NEGATIVE_REVIEWS) || 0;
+                });
+
+                const totalReviews =
+                    totalPositive + totalNeutral + totalNegative;
+
+                // Create chart
+                chartInstance = new Chart(ctx, {
+                    type: "pie",
                     data: {
                         labels: ["Positive", "Neutral", "Negative"],
                         datasets: [
                             {
                                 data: [
-                                    summary.sentiment_breakdown?.positive || 0,
-                                    summary.sentiment_breakdown?.neutral || 0,
-                                    summary.sentiment_breakdown?.negative || 0,
+                                    totalPositive,
+                                    totalNeutral,
+                                    totalNegative,
                                 ],
                                 backgroundColor: [
-                                    "#2ecc71",
-                                    "#f39c12",
-                                    "#e74c3c",
+                                    "#16a34a",
+                                    "#ca8a04",
+                                    "#dc2626",
                                 ],
-                                borderColor: isDarkMode ? "#121212" : "#ffffff",
+                                borderColor: isDarkMode
+                                    ? ["#0f172a", "#0f172a", "#0f172a"]
+                                    : ["#fff", "#fff", "#fff"],
                                 borderWidth: 2,
                             },
                         ],
                     },
                     options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
                         plugins: {
-                            legend: { position: "bottom" },
-                            tooltip: { enabled: false },
+                            legend: {
+                                position: "bottom",
+                                labels: {
+                                    color: isDarkMode ? "#e2e8f0" : "#334155",
+                                    font: {
+                                        size: 12,
+                                    },
+                                    padding: 20,
+                                },
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const label = context.label || "";
+                                        const value = context.raw;
+                                        const percentage = Math.round(
+                                            (value / totalReviews) * 100,
+                                        );
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    },
+                                },
+                            },
+                        },
+                        animation: {
+                            animateScale: true,
+                            animateRotate: true,
                         },
                     },
                 });
-
-                new bootstrap.Modal(
-                    document.getElementById("detailModal"),
-                ).show();
-            }
-            function toggleDarkMode() {
-                document.body.classList.toggle("light-mode");
-                const icon = document.querySelector(".theme-toggle-icon");
-                const text = document.querySelector(".theme-text");
-                isDarkMode = !isDarkMode;
-
-                icon.classList.toggle("fa-moon", isDarkMode);
-                icon.classList.toggle("fa-sun", !isDarkMode);
-                text.textContent = isDarkMode ? "Dark Mode" : "Light Mode";
-                updateChartsTheme();
             }
 
-            function updateChartsTheme() {
-                Object.values(chartInstances).forEach((chart) => {
-                    chart.options.plugins.legend.labels.color = isDarkMode
-                        ? "#ecf0f1"
-                        : "#2c3e50";
-                    chart.options.scales.x.ticks.color = isDarkMode
-                        ? "#ecf0f1"
-                        : "#2c3e50";
-                    chart.options.scales.y.ticks.color = isDarkMode
-                        ? "#ecf0f1"
-                        : "#2c3e50";
-                    chart.update();
-                });
-            }
+            function exportToPDF() {
+                if (!currentResults.length) {
+                    alert("No results to export.");
+                    return;
+                }
 
-            function animateCounter(
-                element,
-                start,
-                end,
-                duration,
-                decimal = 0,
-            ) {
-                let startTime = null;
-                const step = (timestamp) => {
-                    if (!startTime) startTime = timestamp;
-                    const progress = Math.min(
-                        (timestamp - startTime) / duration,
-                        1,
-                    );
-                    element.textContent = (
-                        start +
-                        (end - start) * progress
-                    ).toFixed(decimal);
-                    if (progress < 1) requestAnimationFrame(step);
-                };
-                requestAnimationFrame(step);
-            }
-
-            function showLoading(show) {
-                document.getElementById("loading-container").style.display =
-                    show ? "block" : "none";
-                document.getElementById("upload-form").style.opacity = show
-                    ? 0.5
-                    : 1;
-            }
-
-            function downloadFile() {
-                window.location.href = "/download";
-            }
-
-            async function exportPDF() {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                const element = document.getElementById("sheet-viewer");
 
-                await html2canvas(element).then((canvas) => {
-                    const img = canvas.toDataURL("image/png");
-                    doc.addImage(img, "PNG", 10, 10, 190, 0);
-                    doc.save("analysis-report.pdf");
+                // Title
+                doc.setFontSize(20);
+                doc.text("Sentiment Analysis Report", 105, 20, {
+                    align: "center",
                 });
+                doc.setFontSize(12);
+                doc.setTextColor(100);
+                doc.text(new Date().toLocaleDateString(), 105, 28, {
+                    align: "center",
+                });
+
+                // Summary section
+                doc.setFontSize(14);
+                doc.setTextColor(0);
+                doc.text("Summary Statistics", 20, 40);
+
+                // Draw summary boxes
+                doc.setDrawColor(200);
+                doc.setFillColor(236, 253, 245);
+                doc.roundedRect(20, 45, 170, 20, 2, 2, "F");
+                doc.text(
+                    `Average Rating: ${document.getElementById("avgRating").textContent}`,
+                    25,
+                    55,
+                );
+
+                doc.setFillColor(254, 252, 232);
+                doc.roundedRect(20, 70, 55, 20, 2, 2, "F");
+                doc.text(
+                    `Positive: ${document.getElementById("positiveReviews").textContent}`,
+                    25,
+                    80,
+                );
+
+                doc.setFillColor(255, 247, 237);
+                doc.roundedRect(80, 70, 55, 20, 2, 2, "F");
+                doc.text(
+                    `Neutral: ${document.getElementById("neutralReviews").textContent}`,
+                    85,
+                    80,
+                );
+
+                doc.setFillColor(254, 242, 242);
+                doc.roundedRect(140, 70, 50, 20, 2, 2, "F");
+                doc.text(
+                    `Negative: ${document.getElementById("negativeReviews").textContent}`,
+                    145,
+                    80,
+                );
+
+                // Results table
+                doc.setFontSize(14);
+                doc.text("Product Analysis Results", 20, 100);
+
+                const headers = [
+                    "Product",
+                    "Sentiment",
+                    "Rating",
+                    "Accuracy",
+                    "Total Reviews",
+                ];
+                const data = currentResults.map((result) => [
+                    result.URL_ID,
+                    result.OVERALL_SENTIMENT,
+                    result.OVERALL_RATING,
+                    result.ACCURACY_SCORE,
+                    result.TOTAL_REVIEWS,
+                ]);
+
+                doc.autoTable({
+                    startY: 105,
+                    head: [headers],
+                    body: data,
+                    theme: "grid",
+                    headStyles: {
+                        fillColor: [15, 23, 42],
+                        textColor: 255,
+                        fontSize: 10,
+                    },
+                    bodyStyles: {
+                        fontSize: 9,
+                    },
+                    alternateRowStyles: {
+                        fillColor: [241, 245, 249],
+                    },
+                });
+
+                // Save the PDF
+                doc.save("sentiment-analysis-report.pdf");
             }
 
-            // Initialize particles
-            function createParticles() {
-                const container = document.getElementById("particles");
-                for (let i = 0; i < 50; i++) {
-                    const particle = document.createElement("div");
-                    particle.className = "particle";
-                    particle.style.cssText = `
-                    left: ${Math.random() * 100}%;
-                    top: ${Math.random() * 100}%;
-                    width: ${Math.random() * 5 + 2}px;
-                    height: ${Math.random() * 5 + 2}px;
-                    animation-duration: ${Math.random() * 20 + 10}s;
-                `;
-                    container.appendChild(particle);
+            function exportDetailsToPDF() {
+                if (!currentProductDetails) {
+                    alert("No product details to export");
+                    return;
                 }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const title =
+                    currentProductDetails.product_id || "Product Analysis";
+                const url = currentProductDetails.product_url || "";
+
+                // Title
+                doc.setFontSize(18);
+                doc.text(title, 105, 15, { align: "center" });
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(url, 105, 22, { align: "center" });
+
+                // Summary section
+                doc.setFontSize(14);
+                doc.text("Summary", 20, 35);
+
+                const summary = currentProductDetails.summary || {};
+                const summaryData = [
+                    {
+                        label: "Overall Rating",
+                        value: summary.average_rating || "0.0",
+                    },
+                    {
+                        label: "Total Reviews",
+                        value: summary.total_reviews || "0",
+                    },
+                    {
+                        label: "Overall Sentiment",
+                        value: summary.overall_sentiment || "Unknown",
+                    },
+                    {
+                        label: "Accuracy Score",
+                        value: `${summary.accuracy_score || "0.0"}%`,
+                    },
+                ];
+
+                let yPos = 45;
+                summaryData.forEach((item) => {
+                    doc.setFontSize(10);
+                    doc.setTextColor(100);
+                    doc.text(item.label + ":", 20, yPos);
+
+                    doc.setFontSize(12);
+                    doc.setTextColor(0);
+                    doc.text(item.value.toString(), 70, yPos);
+
+                    yPos += 8;
+                });
+
+                // Reviews section
+                if (
+                    currentProductDetails.reviews &&
+                    currentProductDetails.reviews.length
+                ) {
+                    doc.addPage();
+                    doc.setFontSize(16);
+                    doc.text("Customer Reviews", 105, 15, { align: "center" });
+
+                    yPos = 25;
+                    currentProductDetails.reviews
+                        .slice(0, 10)
+                        .forEach((review, index) => {
+                            if (yPos > 280) {
+                                doc.addPage();
+                                yPos = 20;
+                            }
+
+                            doc.setFontSize(12);
+                            doc.text(`Review #${index + 1}`, 20, yPos);
+                            yPos += 7;
+
+                            doc.setFontSize(10);
+                            doc.setTextColor(100);
+                            doc.text(
+                                `By: ${review.author || "Anonymous"} | Date: ${review.date || "Unknown"} | Rating: ${review.rating || "N/A"}`,
+                                20,
+                                yPos,
+                            );
+                            yPos += 5;
+
+                            doc.setFontSize(10);
+                            doc.setTextColor(0);
+                            const reviewText =
+                                review.text || "No review text available.";
+                            const splitText = doc.splitTextToSize(
+                                reviewText,
+                                170,
+                            );
+                            doc.text(splitText, 20, yPos);
+
+                            yPos += splitText.length * 5 + 10;
+
+                            // Add separator
+                            if (
+                                index <
+                                currentProductDetails.reviews.length - 1
+                            ) {
+                                doc.setDrawColor(200);
+                                doc.line(20, yPos, 190, yPos);
+                                yPos += 10;
+                            }
+                        });
+                }
+
+                // Save the PDF
+                doc.save(`${title.replace(/\s+/g, "_")}-details.pdf`);
             }
 
-            document.addEventListener("DOMContentLoaded", () => {
-                createParticles();
-                window.addEventListener("scroll", () => {
-                    document.getElementById("scroll-top").style.display =
-                        window.scrollY > 500 ? "block" : "none";
-                });
+            // Close modals when clicking outside
+            window.addEventListener("click", (e) => {
+                if (e.target === detailsModal) {
+                    detailsModal.classList.add("hidden");
+                }
+                if (e.target === comparisonModal) {
+                    comparisonModal.classList.add("hidden");
+                }
             });
         </script>
     </body>
