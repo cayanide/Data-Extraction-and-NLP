@@ -1,93 +1,373 @@
+# 🎯 Sentiment Analyzer Pro
 
-# Data Extraction and NLP
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Selenium](https://img.shields.io/badge/Selenium-4.0+-orange.svg)](https://selenium-python.readthedocs.io/)
 
-This project is designed to extract and process data using Natural Language Processing (NLP) techniques. The application is built using Python and deployable in a Docker container, allowing you to run it in any environment that supports Docker.
+> **An AI-powered web application that scrapes, analyzes, and visualizes customer sentiments from Amazon product reviews using advanced NLP techniques.**
 
-## Features
-- Data extraction from text-based sources
-- NLP processing with various libraries like pandas, numpy, and more
-- Multi-architecture Docker image support (Linux/amd64, Linux/arm64)
-- Integration with GitHub Container Registry for easy distribution
+Sentiment Analyzer Pro is a comprehensive solution for businesses, researchers, and e-commerce analysts who need to understand customer opinions at scale. Built with modern web technologies and machine learning, it transforms thousands of Amazon reviews into actionable insights through automated sentiment analysis, word cloud visualization, and interactive reporting.
 
-## Prerequisites
-To run this project locally or deploy it in a containerized environment, you need the following prerequisites:
-- Python 3.11 or higher
-- Docker (for containerization)
-- Git (for version control)
-- pip (for Python package installation)
+![Demo Screenshot](https://via.placeholder.com/800x400/4f46e5/ffffff?text=Sentiment+Analyzer+Pro+Dashboard)
 
-## Installation
+---
 
-### 1. Clone the repository
+## 🚀 Key Features
+
+### 🔍 **Advanced Web Scraping**
+
+* **Headless Chrome Automation**
+* **Anti-Detection Measures**
+* **Dual Review Sources**
+* **Robust Error Handling**
+
+### 🧠 **Machine Learning-Powered Analysis**
+
+* **Pre-trained Naive Bayes Model**
+* **TF-IDF Vectorization**
+* **Sentiment Mapping**
+* **Accuracy Metrics**
+
+### 📊 **Rich Data Visualization**
+
+* **Interactive Word Clouds**
+* **Sentiment Distribution Charts**
+* **Product Comparison Tools**
+* **Detailed Review Insights**
+
+### 🎨 **Modern Web Interface**
+
+* **Responsive Design**
+* **Drag & Drop Upload**
+* **Real-time Processing**
+* **Export Capabilities**
+
+---
+
+## 🏗️ Architecture Overview
+
+```mermaid
+graph TD
+    A[Excel Upload] --> B[URL Extraction]
+    B --> C[Selenium Scraper]
+    C --> D[HTML Parser]
+    D --> E[Review Data]
+    E --> F[NLP Preprocessing]
+    F --> G[Naive Bayes Model]
+    G --> H[Sentiment Prediction]
+    H --> I[Word Cloud Generation]
+    I --> J[Results Compilation]
+    J --> K[Flask API Response]
+    K --> L[Interactive Dashboard]
+```
+
+---
+
+## 🛠️ Technology Stack
+
+| Category             | Technologies                    |
+| -------------------- | ------------------------------- |
+| **Backend**          | Python, Flask                   |
+| **Web Scraping**     | Selenium, WebDriver Manager     |
+| **Machine Learning** | scikit-learn, NLTK              |
+| **Data Processing**  | Pandas, openpyxl                |
+| **Frontend**         | HTML5, Tailwind CSS, JavaScript |
+| **Visualization**    | WordCloud, Matplotlib           |
+
+---
+
+## 📋 Prerequisites
+
+* **Python 3.8+**
+* **Google Chrome**
+* **Git**
+* **Virtual Environment** (recommended)
+
+### System Requirements
+
+* **RAM**: 4GB minimum (8GB recommended)
+* **Storage**: 2GB
+* **Network**: Stable connection
+
+---
+
+## ⚡ Quick Start
+
+### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/cayanide/Data-Extraction-and-NLP.git
 cd Data-Extraction-and-NLP
 ```
 
-### 2. Install dependencies
-Create a virtual environment and install required dependencies.
-```bash
-python3 -m venv .venv
-source .venv/bin/activate  # For macOS/Linux
-.venv\Scripts\activate  # For Windows
+### 2. Set Up Virtual Environment
 
+```bash
+python -m venv sentiment_analyzer_env
+# Activate virtual environment
+# Windows:
+sentiment_analyzer_env\Scripts\activate
+# macOS/Linux:
+source sentiment_analyzer_env/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 3. Run the application
-To run the application locally:
+### 4. Download NLTK Data
+
+```bash
+python -c "import nltk; nltk.download(['stopwords', 'punkt'])"
+```
+
+### 5. Add Required Models
+
+* `NB_model.pkl`
+* `vectorizer.pkl`
+
+> If missing, train using a labeled dataset.
+
+### 6. Launch the App
+
 ```bash
 python main.py
 ```
 
-### 4. Build and run using Docker (optional)
-Alternatively, you can build and run the application using Docker for a more streamlined experience.
+Navigate to `http://localhost:8050`
 
-#### Build the Docker image:
-```bash
-docker build -t my-nlp-app .
+---
+
+## 📖 Detailed Usage Guide
+
+### 1. Prepare Input File
+
+| URL\_ID    | URL                                                                          |
+| ---------- | ---------------------------------------------------------------------------- |
+| B08J4C2D2S | [https://www.amazon.com/dp/B08J4C2D2S](https://www.amazon.com/dp/B08J4C2D2S) |
+
+### 2. Upload and Analyze
+
+* Open `http://localhost:8050`
+* Upload Excel file
+* Click "Analyze Reviews"
+
+### 3. Review Results
+
+* Sentiment Distribution
+* Average Rating
+* Total Reviews
+* Accuracy Score
+* Word Clouds
+
+### 4. Export Data
+
+* Excel Report
+* Product Insights
+* Word Cloud Images
+
+---
+
+## 🗂️ Project Structure
+
+```
+Data-Extraction-and-NLP/
+├── main.py
+├── index.html
+├── requirements.txt
+├── README.md
+├── NB_model.pkl
+├── vectorizer.pkl
+├── static/
+│   ├── uploads/
+│   ├── output/
+│   └── wordclouds/
+├── Products/
+└── templates/
 ```
 
-#### Run the Docker container:
-```bash
-docker run -p 5000:5000 my-nlp-app
+---
+
+## ⚖️ Configuration Options
+
+### Selenium Configuration
+
+```python
+options = Options()
+options.add_argument('--headless')
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
+options.add_argument('--disable-gpu')
+options.add_argument('--window-size=1920,1080')
 ```
 
-## Docker Setup
-This project includes a `Dockerfile` for containerizing the application. You can build the Docker image with multi-architecture support using the following command:
+### Model Parameters
 
-```bash
-docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/cayanide/my-nlp-app:latest --push .
+* Mapping: `{0: "negative", 1: "neutral", 2: "positive"}`
+* Word Cloud: 800x400, white background
+
+---
+
+## 🔎 API Endpoints
+
+| Endpoint                        | Method | Description               |
+| ------------------------------- | ------ | ------------------------- |
+| `/`                             | GET    | Main dashboard            |
+| `/upload`                       | POST   | Upload and process file   |
+| `/results`                      | GET    | Get analysis results      |
+| `/download`                     | GET    | Download Excel report     |
+| `/product-details/<name>`       | GET    | Product-specific insights |
+| `/static/wordclouds/<filename>` | GET    | Word cloud images         |
+
+### Example:
+
+```python
+files = {'file': open('products.xlsx', 'rb')}
+response = requests.post('http://localhost:8050/upload', files=files)
+results = requests.get('http://localhost:8050/results').json()
 ```
 
+---
 
-This will build the image for both `amd64` and `arm64` platforms and push it to GitHub Container Registry.
+## 🚨 Troubleshooting
 
-Screenshots:
+### Chrome Driver Issues
 
-![image](https://github.com/user-attachments/assets/c0ea1a68-339a-4680-8dae-4036b5b1d03c)
+```bash
+pip install --upgrade webdriver-manager
+```
 
+### Missing Model Files
 
-![image](https://github.com/user-attachments/assets/eeca723b-694c-4cb4-b458-9f38df6088f2)
+Ensure `NB_model.pkl` and `vectorizer.pkl` are in the root folder.
 
-<img width="1163" alt="image" src="https://github.com/user-attachments/assets/854ab131-274d-4167-b2e6-bb187aebf703" />
+### Memory Issues
 
+* Process smaller batches
+* Upgrade RAM if needed
 
+### Timeout Errors
 
+* Check connection
+* Increase timeout values
 
-## Contributing
-We welcome contributions to improve this project. To contribute:
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Make your changes.
-4. Commit your changes (`git commit -am 'Add new feature'`).
-5. Push to the branch (`git push origin feature-branch`).
-6. Create a pull request.
+### Enable Debug
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```bash
+python main.py --debug
+```
 
-## Acknowledgements
-- This project uses various NLP techniques and libraries like `pandas`, `numpy`, etc.
-- Thanks to the contributors and maintainers of the libraries that made this project possible.
+---
 
+## 🧪 Testing
+
+### Unit Tests
+
+```bash
+python -m pytest tests/ -v
+```
+
+### Manual Checklist
+
+* [ ] File upload
+* [ ] Excel parsing
+* [ ] Scraping
+* [ ] Sentiment analysis
+* [ ] Word clouds
+* [ ] Export features
+
+---
+
+## 🚀 Performance Optimization
+
+### Scraping
+
+* Use threading
+* Implement caching
+* Add rate limiting
+
+### Model
+
+* Batch processing
+* Upgrade to transformers
+* Optimize preprocessing
+
+---
+
+## 🤝 Contributing
+
+### Setup
+
+```bash
+git checkout -b feature/amazing-feature
+```
+
+* Add docstrings, tests, and update docs
+* Follow PEP 8
+
+### Areas to Help
+
+* Multi-language support
+* More visualizations
+* Database support
+* API rate limiting
+* Mobile UI
+* Cloud deployment
+
+---
+
+## 📊 Roadmap
+
+### v2.0 (Planned)
+
+* Real-time sentiment
+* Multi-platform
+* Mobile app
+* Cloud integration
+
+### v2.1 (Future)
+
+* Transformers
+* Trend forecasting
+* Business tool integrations
+* Enterprise features
+
+---
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE)
+
+---
+
+## 📞 Support & Contact
+
+* [GitHub Issues](https://github.com/cayanide/Data-Extraction-and-NLP/issues)
+* [GitHub Discussions](https://github.com/cayanide/Data-Extraction-and-NLP/discussions)
+* Email via GitHub profile
+
+---
+
+## 🙏 Acknowledgments
+
+* Amazon
+* NLTK
+* Selenium
+* Flask
+* Open source community
+
+---
+
+<div align="center">
+
+**Built with ❤️ by [cayanide](https://github.com/cayanide)**
+
+*Sentiment Analyzer Pro - Transforming customer feedback into business intelligence*
+
+[![GitHub stars](https://img.shields.io/github/stars/cayanide/Data-Extraction-and-NLP?style=social)](https://github.com/cayanide/Data-Extraction-and-NLP)
+[![GitHub forks](https://img.shields.io/github/forks/cayanide/Data-Extraction-and-NLP?style=social)](https://github.com/cayanide/Data-Extraction-and-NLP)
+
+</div>
