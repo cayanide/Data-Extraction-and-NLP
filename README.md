@@ -13,9 +13,15 @@ Sentiment Analyzer Pro is a comprehensive solution for businesses, researchers, 
 
 ![image](https://github.com/user-attachments/assets/7d3e4fca-a988-434d-b1f7-28b8bf106f20)
 
-![image](https://github.com/user-attachments/assets/cd8d297e-bfbf-4d1c-aeb1-64b0498997b0)
+![image](https://github.com/user-attachments/assets/031338a6-95fa-468e-9ecf-065384e7cba6)
 
+![image](https://github.com/user-attachments/assets/fdf8b071-e76b-4539-b878-b4ed4d3b99a1)
 
+![image](https://github.com/user-attachments/assets/c62f1780-79b7-450d-bca0-d7bb25f7a5d4)
+
+![image](https://github.com/user-attachments/assets/a360250e-8439-4696-a7d0-ace5ac7423db)
+
+![image](https://github.com/user-attachments/assets/1f9f4f06-c33f-4dab-8524-1fc37481eedc)
 
 ---
 
