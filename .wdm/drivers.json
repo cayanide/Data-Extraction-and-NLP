@@ -2,5 +2,13 @@
     "mac64_chromedriver_135.0.7049.84_for_135.0.7049": {
         "timestamp": "09/04/2025",
         "binary_path": "/Users/sayanchatterjee/Nextcloud/Work/BlackCoffer/Data-Extraction-and-NLP/.wdm/drivers/chromedriver/mac64/135.0.7049.84/chromedriver-mac-arm64/chromedriver"
+    },
+    "mac64_chromedriver_135.0.7049.114_for_135.0.7049": {
+        "timestamp": "30/05/2025",
+        "binary_path": "/Users/sayanchatterjee/Nextcloud/Work/BlackCoffer/Data-Extraction-and-NLP/.wdm/drivers/chromedriver/mac64/135.0.7049.114/chromedriver-mac-arm64/chromedriver"
+    },
+    "mac64_chromedriver_136.0.7103.113_for_136.0.7103": {
+        "timestamp": "30/05/2025",
+        "binary_path": "/Users/sayanchatterjee/Nextcloud/Work/BlackCoffer/Data-Extraction-and-NLP/.wdm/drivers/chromedriver/mac64/136.0.7103.113/chromedriver-mac-arm64/chromedriver"
     }
 }
