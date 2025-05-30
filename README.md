@@ -9,7 +9,13 @@
 
 Sentiment Analyzer Pro is a comprehensive solution for businesses, researchers, and e-commerce analysts who need to understand customer opinions at scale. Built with modern web technologies and machine learning, it transforms thousands of Amazon reviews into actionable insights through automated sentiment analysis, word cloud visualization, and interactive reporting.
 
-![Demo Screenshot](https://via.placeholder.com/800x400/4f46e5/ffffff?text=Sentiment+Analyzer+Pro+Dashboard)
+![Demo Screenshot]
+
+![image](https://github.com/user-attachments/assets/7d3e4fca-a988-434d-b1f7-28b8bf106f20)
+
+![image](https://github.com/user-attachments/assets/cd8d297e-bfbf-4d1c-aeb1-64b0498997b0)
+
+
 
 ---
 
