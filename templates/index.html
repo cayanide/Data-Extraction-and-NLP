@@ -309,6 +309,108 @@
             .floating {
                 animation: float 4s ease-in-out infinite;
             }
+
+            .tab-button {
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                font-weight: 500;
+                transition: all 0.3s;
+                cursor: pointer;
+            }
+
+            .tab-button.active {
+                background: linear-gradient(135deg, #0ea5e9, #0284c7);
+                color: white;
+            }
+
+            .rating-distribution-bar {
+                height: 10px;
+                border-radius: 5px;
+                background: linear-gradient(
+                    to right,
+                    #dc2626,
+                    #ca8a04,
+                    #16a34a
+                );
+            }
+
+            .rating-distribution-labels {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 0.5rem;
+                font-size: 0.75rem;
+                color: #6b7280;
+            }
+
+            .dark .rating-distribution-labels {
+                color: #9ca3af;
+            }
+
+            .review-tag {
+                display: inline-block;
+                padding: 0.25rem 0.75rem;
+                border-radius: 9999px;
+                font-size: 0.75rem;
+                margin-right: 0.5rem;
+                margin-bottom: 0.5rem;
+                background-color: #e5e7eb;
+            }
+
+            .dark .review-tag {
+                background-color: #374151;
+            }
+
+            .keyword-highlight {
+                background-color: #dbeafe;
+                padding: 0.1rem 0.3rem;
+                border-radius: 0.25rem;
+            }
+
+            .dark .keyword-highlight {
+                background-color: #1e3a8a;
+            }
+
+            .sentiment-timeline {
+                position: relative;
+                padding-left: 1.5rem;
+                border-left: 2px solid #e5e7eb;
+                margin-top: 1rem;
+            }
+
+            .dark .sentiment-timeline {
+                border-left-color: #374151;
+            }
+
+            .sentiment-timeline-item {
+                position: relative;
+                margin-bottom: 1.5rem;
+            }
+
+            .sentiment-timeline-item::before {
+                content: "";
+                position: absolute;
+                left: -1.7rem;
+                top: 0.25rem;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                border: 2px solid;
+            }
+
+            .sentiment-timeline-item.positive::before {
+                background-color: #16a34a;
+                border-color: #16a34a;
+            }
+
+            .sentiment-timeline-item.neutral::before {
+                background-color: #ca8a04;
+                border-color: #ca8a04;
+            }
+
+            .sentiment-timeline-item.negative::before {
+                background-color: #dc2626;
+                border-color: #dc2626;
+            }
         </style>
     </head>
     <body class="bg-gray-50 text-gray-800">
@@ -963,12 +1065,17 @@
             <div class="modal-overlay absolute inset-0"></div>
             <div class="absolute inset-0 flex items-center justify-center p-4">
                 <div
-                    class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
                 >
                     <div
                         class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center"
                     >
-                        <h2 class="text-xl font-semibold">Product Insights</h2>
+                        <h2
+                            class="text-xl font-semibold"
+                            id="productNameHeader"
+                        >
+                            Product Insights
+                        </h2>
                         <button
                             id="closeDetails"
                             class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -976,21 +1083,281 @@
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
-                    <div id="reviewsList" class="p-6">
-                        <!-- Product details will be loaded here -->
-                        <div class="text-center py-12">
-                            <div class="inline-block mb-4">
-                                <div
-                                    class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
-                                >
-                                    <i
-                                        class="fas fa-spinner fa-spin text-gray-400 text-xl"
-                                    ></i>
+
+                    <!-- Tab Navigation -->
+                    <div
+                        class="px-6 pt-4 flex flex-wrap border-b border-gray-200 dark:border-gray-700"
+                    >
+                        <div class="tab-button active" data-tab="overview">
+                            Overview
+                        </div>
+                        <div class="tab-button" data-tab="reviews">Reviews</div>
+                        <div class="tab-button" data-tab="wordcloud">
+                            Word Cloud
+                        </div>
+                        <div class="tab-button" data-tab="graphs">Insights</div>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Overview Tab -->
+                        <div id="overviewTab" class="tab-content">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="card p-5">
+                                    <h3 class="text-lg font-semibold mb-4">
+                                        Key Metrics
+                                    </h3>
+                                    <div class="space-y-4">
+                                        <div
+                                            class="flex justify-between items-center"
+                                        >
+                                            <div
+                                                class="text-gray-600 dark:text-gray-300"
+                                            >
+                                                Overall Rating
+                                            </div>
+                                            <div class="flex items-center">
+                                                <span
+                                                    class="text-2xl font-bold mr-1"
+                                                    id="detailOverallRating"
+                                                    >0.0</span
+                                                >
+                                                <i
+                                                    class="fas fa-star text-yellow-400"
+                                                ></i>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="flex justify-between items-center"
+                                        >
+                                            <div
+                                                class="text-gray-600 dark:text-gray-300"
+                                            >
+                                                Total Reviews
+                                            </div>
+                                            <div
+                                                class="text-2xl font-bold"
+                                                id="detailTotalReviews"
+                                            >
+                                                0
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="flex justify-between items-center"
+                                        >
+                                            <div
+                                                class="text-gray-600 dark:text-gray-300"
+                                            >
+                                                Overall Sentiment
+                                            </div>
+                                            <div id="detailOverallSentiment">
+                                                <span
+                                                    class="sentiment-badge positive"
+                                                    >Positive</span
+                                                >
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="flex justify-between items-center"
+                                        >
+                                            <div
+                                                class="text-gray-600 dark:text-gray-300"
+                                            >
+                                                Accuracy Score
+                                            </div>
+                                            <div
+                                                class="text-2xl font-bold"
+                                                id="detailAccuracyScore"
+                                            >
+                                                0%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card p-5">
+                                    <h3 class="text-lg font-semibold mb-4">
+                                        Sentiment Breakdown
+                                    </h3>
+                                    <div class="grid grid-cols-3 gap-4 mb-6">
+                                        <div class="text-center">
+                                            <div
+                                                class="text-2xl font-bold text-green-600"
+                                                id="detailPositiveCount"
+                                            >
+                                                0
+                                            </div>
+                                            <div
+                                                class="text-sm text-gray-500 dark:text-gray-400"
+                                            >
+                                                Positive
+                                            </div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div
+                                                class="text-2xl font-bold text-yellow-600"
+                                                id="detailNeutralCount"
+                                            >
+                                                0
+                                            </div>
+                                            <div
+                                                class="text-sm text-gray-500 dark:text-gray-400"
+                                            >
+                                                Neutral
+                                            </div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div
+                                                class="text-2xl font-bold text-red-600"
+                                                id="detailNegativeCount"
+                                            >
+                                                0
+                                            </div>
+                                            <div
+                                                class="text-sm text-gray-500 dark:text-gray-400"
+                                            >
+                                                Negative
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas
+                                            id="detailSentimentChart"
+                                        ></canvas>
+                                    </div>
+                                </div>
+
+                                <div class="card p-5">
+                                    <h3 class="text-lg font-semibold mb-4">
+                                        Rating Distribution
+                                    </h3>
+                                    <div
+                                        class="space-y-4"
+                                        id="ratingDistribution"
+                                    >
+                                        <!-- Rating bars will be populated here -->
+                                    </div>
+                                </div>
+
+                                <div class="card p-5">
+                                    <h3 class="text-lg font-semibold mb-4">
+                                        Review Keywords
+                                    </h3>
+                                    <div id="reviewKeywords">
+                                        <!-- Keywords will be populated here -->
+                                    </div>
                                 </div>
                             </div>
-                            <p>Loading product details...</p>
+                        </div>
+
+                        <!-- Reviews Tab -->
+                        <div id="reviewsTab" class="tab-content hidden">
+                            <div class="mb-4">
+                                <h3 class="text-lg font-semibold">
+                                    Customer Reviews
+                                </h3>
+                                <div class="mt-2 flex items-center text-sm">
+                                    <span class="mr-3">Filter:</span>
+                                    <button
+                                        class="review-filter active mr-2 px-3 py-1 rounded-full bg-primary-600 text-white"
+                                        data-filter="all"
+                                    >
+                                        All
+                                    </button>
+                                    <button
+                                        class="review-filter mr-2 px-3 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                                        data-filter="positive"
+                                    >
+                                        Positive
+                                    </button>
+                                    <button
+                                        class="review-filter mr-2 px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200"
+                                        data-filter="neutral"
+                                    >
+                                        Neutral
+                                    </button>
+                                    <button
+                                        class="review-filter px-3 py-1 rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200"
+                                        data-filter="negative"
+                                    >
+                                        Negative
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="reviewsList">
+                                <!-- Reviews will be populated here -->
+                            </div>
+
+                            <div class="mt-6 text-center">
+                                <button
+                                    id="loadMoreReviews"
+                                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg"
+                                >
+                                    <i class="fas fa-plus mr-2"></i> Load More
+                                    Reviews
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Word Cloud Tab -->
+                        <div id="wordcloudTab" class="tab-content hidden">
+                            <div class="text-center">
+                                <h3 class="text-lg font-semibold mb-4">
+                                    Review Word Cloud
+                                </h3>
+                                <img
+                                    id="wordCloudImage"
+                                    src=""
+                                    alt="Word Cloud"
+                                    class="mx-auto max-w-full h-auto rounded-lg shadow-md"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Graphs Tab -->
+                        <div id="graphsTab" class="tab-content hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="card p-5">
+                                    <h3 class="text-lg font-semibold mb-4">
+                                        Sentiment Distribution
+                                    </h3>
+                                    <div class="chart-container">
+                                        <canvas id="detailBarChart"></canvas>
+                                    </div>
+                                </div>
+
+                                <div class="card p-5">
+                                    <h3 class="text-lg font-semibold mb-4">
+                                        Sentiment Timeline
+                                    </h3>
+                                    <div id="sentimentTimeline">
+                                        <!-- Timeline will be populated here -->
+                                    </div>
+                                </div>
+
+                                <div class="card p-5">
+                                    <h3 class="text-lg font-semibold mb-4">
+                                        Rating vs. Sentiment
+                                    </h3>
+                                    <div class="chart-container">
+                                        <canvas
+                                            id="ratingVsSentimentChart"
+                                        ></canvas>
+                                    </div>
+                                </div>
+
+                                <div class="card p-5">
+                                    <h3 class="text-lg font-semibold mb-4">
+                                        Review Length Analysis
+                                    </h3>
+                                    <div class="chart-container">
+                                        <canvas id="reviewLengthChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
                     <div
                         class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3"
                     >
@@ -1119,12 +1486,16 @@
                 document.getElementById("closeComparisonBtn");
             const comparisonContent =
                 document.getElementById("comparisonContent");
+            const loadMoreReviews = document.getElementById("loadMoreReviews");
 
             // State
             let chartInstance = null;
             let currentResults = [];
             let isDarkMode = false;
             let currentProductDetails = null;
+            let detailCharts = {};
+            let reviewsDisplayed = 0;
+            let currentReviewFilter = "all";
 
             // Initialize
             document.addEventListener("DOMContentLoaded", function () {
@@ -1188,6 +1559,56 @@
                 // Export PDFs
                 exportPDF.addEventListener("click", exportToPDF);
                 exportDetails.addEventListener("click", exportDetailsToPDF);
+
+                // Tab navigation
+                document.querySelectorAll(".tab-button").forEach((tab) => {
+                    tab.addEventListener("click", function () {
+                        // Remove active class from all tabs
+                        document
+                            .querySelectorAll(".tab-button")
+                            .forEach((t) => {
+                                t.classList.remove("active");
+                            });
+
+                        // Add active class to clicked tab
+                        this.classList.add("active");
+
+                        // Hide all tab content
+                        document
+                            .querySelectorAll(".tab-content")
+                            .forEach((content) => {
+                                content.classList.add("hidden");
+                            });
+
+                        // Show selected tab content
+                        const tabId = this.dataset.tab;
+                        document
+                            .getElementById(`${tabId}Tab`)
+                            .classList.remove("hidden");
+                    });
+                });
+
+                // Review filter
+                document.querySelectorAll(".review-filter").forEach((btn) => {
+                    btn.addEventListener("click", function () {
+                        document
+                            .querySelectorAll(".review-filter")
+                            .forEach((b) => {
+                                b.classList.remove("active");
+                            });
+                        this.classList.add("active");
+                        currentReviewFilter = this.dataset.filter;
+                        showProductReviews(currentProductDetails);
+                    });
+                });
+
+                // Load more reviews
+                if (loadMoreReviews) {
+                    loadMoreReviews.addEventListener("click", function () {
+                        reviewsDisplayed += 5;
+                        showProductReviews(currentProductDetails);
+                    });
+                }
             }
 
             function handleFileSelect() {
@@ -1215,6 +1636,11 @@
                 // Re-render chart with updated theme
                 if (chartInstance) {
                     drawPieChart(currentResults);
+                }
+
+                // Re-render detail charts
+                if (currentProductDetails) {
+                    showProductDetails(currentProductDetails);
                 }
             }
 
@@ -1440,7 +1866,7 @@
 
             async function fetchProductDetails(productId) {
                 // Show loading state in modal
-                reviewsList.innerHTML = `
+                document.getElementById("overviewTab").innerHTML = `
                     <div class="text-center py-12">
                         <div class="inline-block mb-4">
                             <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
@@ -1450,7 +1876,25 @@
                         <p>Loading product details...</p>
                     </div>
                 `;
+
+                // Hide other tabs
+                document.getElementById("reviewsTab").classList.add("hidden");
+                document.getElementById("wordcloudTab").classList.add("hidden");
+                document.getElementById("graphsTab").classList.add("hidden");
+
+                // Reset tab navigation
+                document.querySelectorAll(".tab-button").forEach((tab) => {
+                    tab.classList.remove("active");
+                });
+                document
+                    .querySelector('.tab-button[data-tab="overview"]')
+                    .classList.add("active");
+
                 detailsModal.classList.remove("hidden");
+
+                // Reset review display
+                reviewsDisplayed = 5;
+                currentReviewFilter = "all";
 
                 try {
                     const response = await fetch(
@@ -1473,7 +1917,7 @@
                     showProductDetails(data);
                 } catch (error) {
                     console.error("Error loading product details:", error);
-                    reviewsList.innerHTML = `
+                    document.getElementById("overviewTab").innerHTML = `
                         <div class="text-center py-12">
                             <div class="inline-block mb-4">
                                 <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
@@ -1488,103 +1932,701 @@
             }
 
             function showProductDetails(analysis) {
-                // Clear previous content
-                reviewsList.innerHTML = "";
+                // Safely update product name in header if element exists
+                const productNameHeader =
+                    document.getElementById("productNameHeader");
+                if (productNameHeader) {
+                    productNameHeader.textContent =
+                        analysis.product_name ||
+                        analysis.product_id ||
+                        "Product Insights";
+                }
 
-                // Add header section
-                const header = document.createElement("div");
-                header.className =
-                    "mb-6 pb-4 border-b border-gray-200 dark:border-gray-700";
-                header.innerHTML = `
-                    <h3 class="text-xl font-semibold">${analysis.product_id || "Product Analysis"}</h3>
-                    <p class="text-gray-600 dark:text-gray-400 mt-1">${analysis.product_url || ""}</p>
+                // Safely update overview metrics if elements exist
+                const detailOverallRating = document.getElementById(
+                    "detailOverallRating",
+                );
+                if (detailOverallRating) {
+                    detailOverallRating.textContent =
+                        analysis.summary?.average_rating?.toFixed(1) || "0.0";
+                }
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-                        <div class="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4">
-                            <div class="text-gray-500 dark:text-gray-400">Overall Rating</div>
-                            <div class="flex items-center mt-1">
-                                <span class="text-2xl font-bold">${analysis.summary?.average_rating || "0.0"}</span>
-                                <i class="fas fa-star text-yellow-400 ml-1"></i>
-                            </div>
-                        </div>
+                const detailTotalReviews =
+                    document.getElementById("detailTotalReviews");
+                if (detailTotalReviews) {
+                    detailTotalReviews.textContent =
+                        analysis.summary?.total_reviews || "0";
+                }
 
-                        <div class="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4">
-                            <div class="text-gray-500 dark:text-gray-400">Total Reviews</div>
-                            <div class="text-2xl font-bold mt-1">${analysis.summary?.total_reviews || "0"}</div>
-                        </div>
+                const detailOverallSentiment = document.getElementById(
+                    "detailOverallSentiment",
+                );
+                if (detailOverallSentiment) {
+                    detailOverallSentiment.innerHTML = `<span class="sentiment-badge ${analysis.summary?.overall_sentiment?.toLowerCase() || "neutral"}">${analysis.summary?.overall_sentiment || "Unknown"}</span>`;
+                }
 
-                        <div class="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4">
-                            <div class="text-gray-500 dark:text-gray-400">Overall Sentiment</div>
-                            <div class="mt-1">
-                                <span class="sentiment-badge ${analysis.summary?.overall_sentiment?.toLowerCase() || "neutral"}">
-                                    ${analysis.summary?.overall_sentiment || "Unknown"}
-                                </span>
-                            </div>
-                        </div>
+                const detailAccuracyScore = document.getElementById(
+                    "detailAccuracyScore",
+                );
+                if (detailAccuracyScore) {
+                    detailAccuracyScore.textContent = `${analysis.summary?.accuracy_score || "0.0"}%`;
+                }
 
-                        <div class="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4">
-                            <div class="text-gray-500 dark:text-gray-400">Accuracy</div>
-                            <div class="text-2xl font-bold mt-1">${analysis.summary?.accuracy_score || "0.0"}%</div>
-                        </div>
-                    </div>
-                `;
-                reviewsList.appendChild(header);
+                // Update sentiment counts if elements exist
+                const detailPositiveCount = document.getElementById(
+                    "detailPositiveCount",
+                );
+                if (detailPositiveCount) {
+                    detailPositiveCount.textContent =
+                        analysis.summary?.sentiment_breakdown?.positive || 0;
+                }
 
-                // Add reviews section
-                const reviewsHeader = document.createElement("h4");
-                reviewsHeader.className = "text-lg font-semibold mb-4 mt-6";
-                reviewsHeader.textContent = "Customer Reviews";
-                reviewsList.appendChild(reviewsHeader);
+                const detailNeutralCount =
+                    document.getElementById("detailNeutralCount");
+                if (detailNeutralCount) {
+                    detailNeutralCount.textContent =
+                        analysis.summary?.sentiment_breakdown?.neutral || 0;
+                }
 
-                // Add reviews
-                if (analysis.reviews && analysis.reviews.length) {
-                    analysis.reviews.slice(0, 5).forEach((review) => {
-                        const reviewCard = document.createElement("div");
-                        reviewCard.className = `review-card ${review.sentiment?.toLowerCase() || "neutral"} mb-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/30`;
+                const detailNegativeCount = document.getElementById(
+                    "detailNegativeCount",
+                );
+                if (detailNegativeCount) {
+                    detailNegativeCount.textContent =
+                        analysis.summary?.sentiment_breakdown?.negative || 0;
+                }
 
-                        const sentimentClass =
-                            review.sentiment?.toLowerCase() || "neutral";
-                        const sentimentIcon =
-                            sentimentClass === "positive"
-                                ? "fa-thumbs-up text-green-500"
-                                : sentimentClass === "negative"
-                                  ? "fa-thumbs-down text-red-500"
-                                  : "fa-meh text-yellow-500";
+                // Render sentiment pie chart if canvas exists
+                if (document.getElementById("detailSentimentChart")) {
+                    renderDetailSentimentChart(
+                        analysis.summary?.sentiment_breakdown || {},
+                    );
+                }
 
-                        reviewCard.innerHTML = `
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <div class="font-medium">${review.author || "Anonymous"}</div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">${review.date || "Unknown date"}</div>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="mr-2">
-                                        ${review.rating ? `<span class="font-medium">${review.rating}</span> <i class="fas fa-star text-yellow-400"></i>` : ""}
-                                    </div>
-                                    <i class="fas ${sentimentIcon}"></i>
-                                </div>
-                            </div>
-                            <div class="mt-3 text-gray-700 dark:text-gray-300">
-                                ${review.text || "No review text available."}
-                            </div>
-                        `;
-                        reviewsList.appendChild(reviewCard);
+                // Generate rating distribution if container exists
+                if (document.getElementById("ratingDistribution")) {
+                    generateRatingDistribution(analysis.reviews);
+                }
+
+                // Extract and display keywords if container exists
+                if (document.getElementById("reviewKeywords")) {
+                    extractKeywords(analysis.reviews);
+                }
+
+                // Show reviews if container exists
+                if (document.getElementById("reviewsList")) {
+                    showProductReviews(analysis);
+                }
+
+                // Update word cloud if image element exists
+                const wordCloudImage =
+                    document.getElementById("wordCloudImage");
+                if (wordCloudImage && analysis.product_id) {
+                    const safeId = (
+                        analysis.URL_ID ||
+                        analysis.product_id ||
+                        "default"
+                    ).replace(/\W+/g, "_");
+                    wordCloudImage.src = `/static/wordclouds/${safeId}.png`;
+                }
+
+                // Render graphs if canvases exist
+                if (document.getElementById("detailBarChart")) {
+                    renderDetailGraphs(analysis);
+                }
+            }
+
+            function renderDetailSentimentChart(sentimentBreakdown) {
+                const ctx = document
+                    .getElementById("detailSentimentChart")
+                    .getContext("2d");
+
+                // Destroy previous chart if exists
+                if (detailCharts.sentimentPie) {
+                    detailCharts.sentimentPie.destroy();
+                }
+
+                const data = {
+                    labels: ["Positive", "Neutral", "Negative"],
+                    datasets: [
+                        {
+                            data: [
+                                sentimentBreakdown.positive || 0,
+                                sentimentBreakdown.neutral || 0,
+                                sentimentBreakdown.negative || 0,
+                            ],
+                            backgroundColor: ["#16a34a", "#ca8a04", "#dc2626"],
+                            borderColor: isDarkMode
+                                ? ["#0f172a", "#0f172a", "#0f172a"]
+                                : ["#fff", "#fff", "#fff"],
+                            borderWidth: 2,
+                        },
+                    ],
+                };
+
+                detailCharts.sentimentPie = new Chart(ctx, {
+                    type: "doughnut",
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: "bottom",
+                                labels: {
+                                    color: isDarkMode ? "#e2e8f0" : "#334155",
+                                    font: {
+                                        size: 12,
+                                    },
+                                },
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const label = context.label || "";
+                                        const value = context.raw;
+                                        const total =
+                                            context.dataset.data.reduce(
+                                                (a, b) => a + b,
+                                                0,
+                                            );
+                                        const percentage = Math.round(
+                                            (value / total) * 100,
+                                        );
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    },
+                                },
+                            },
+                        },
+                        cutout: "60%",
+                    },
+                });
+            }
+
+            function generateRatingDistribution(reviews) {
+                const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+                let totalReviews = 0;
+
+                if (reviews && reviews.length) {
+                    reviews.forEach((review) => {
+                        const rating = Math.floor(
+                            parseFloat(review.rating) || 0,
+                        );
+                        if (rating >= 1 && rating <= 5) {
+                            ratingDistribution[rating]++;
+                            totalReviews++;
+                        }
                     });
+                }
 
-                    if (analysis.reviews.length > 5) {
-                        const moreText = document.createElement("p");
-                        moreText.className =
-                            "text-center text-gray-500 dark:text-gray-400 mt-4";
-                        moreText.textContent = `+${analysis.reviews.length - 5} more reviews available...`;
-                        reviewsList.appendChild(moreText);
-                    }
+                const container = document.getElementById("ratingDistribution");
+                container.innerHTML = "";
+
+                for (let i = 5; i >= 1; i--) {
+                    const percentage =
+                        totalReviews > 0
+                            ? Math.round(
+                                  (ratingDistribution[i] / totalReviews) * 100,
+                              )
+                            : 0;
+
+                    const ratingElement = document.createElement("div");
+                    ratingElement.className = "mb-3";
+                    ratingElement.innerHTML = `
+                        <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center">
+                                <span class="w-6 text-right mr-2">${i}</span>
+                                <i class="fas fa-star text-yellow-400"></i>
+                            </div>
+                            <span class="text-sm">${ratingDistribution[i]} (${percentage}%)</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                            <div class="h-2.5 rounded-full" style="width: ${percentage}%; background-color: ${
+                                i === 5
+                                    ? "#16a34a"
+                                    : i === 4
+                                      ? "#22c55e"
+                                      : i === 3
+                                        ? "#f59e0b"
+                                        : i === 2
+                                          ? "#f97316"
+                                          : "#ef4444"
+                            }"></div>
+                        </div>
+                    `;
+                    container.appendChild(ratingElement);
+                }
+            }
+
+            function extractKeywords(reviews) {
+                const keywords = {};
+                const stopWords = new Set([
+                    "the",
+                    "and",
+                    "to",
+                    "of",
+                    "a",
+                    "in",
+                    "is",
+                    "it",
+                    "that",
+                    "was",
+                    "for",
+                    "on",
+                    "with",
+                    "as",
+                    "by",
+                    "at",
+                    "be",
+                    "this",
+                    "are",
+                    "or",
+                    "from",
+                    "an",
+                    "but",
+                    "not",
+                    "have",
+                    "has",
+                    "had",
+                    "my",
+                    "we",
+                    "our",
+                    "you",
+                    "your",
+                    "they",
+                    "them",
+                    "their",
+                    "i",
+                    "me",
+                    "he",
+                    "she",
+                    "his",
+                    "her",
+                    "its",
+                    "us",
+                    "we",
+                ]);
+
+                if (reviews && reviews.length) {
+                    reviews.forEach((review) => {
+                        if (review.text) {
+                            const words =
+                                review.text.toLowerCase().match(/\b(\w+)\b/g) ||
+                                [];
+                            words.forEach((word) => {
+                                if (word.length > 3 && !stopWords.has(word)) {
+                                    keywords[word] = (keywords[word] || 0) + 1;
+                                }
+                            });
+                        }
+                    });
+                }
+
+                // Sort keywords by frequency
+                const sortedKeywords = Object.entries(keywords)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 20);
+
+                const container = document.getElementById("reviewKeywords");
+                container.innerHTML = "";
+
+                if (sortedKeywords.length) {
+                    sortedKeywords.forEach(([word, count]) => {
+                        const tag = document.createElement("span");
+                        tag.className = "review-tag";
+                        tag.textContent = `${word} (${count})`;
+                        container.appendChild(tag);
+                    });
                 } else {
-                    const noReviews = document.createElement("p");
-                    noReviews.className =
-                        "text-gray-500 dark:text-gray-400 text-center py-4";
-                    noReviews.textContent =
-                        "No reviews available for this product.";
-                    reviewsList.appendChild(noReviews);
+                    container.innerHTML =
+                        '<p class="text-gray-500 dark:text-gray-400">No keywords found</p>';
+                }
+            }
+
+            function showProductReviews(analysis) {
+                const container = document.getElementById("reviewsList");
+                container.innerHTML = "";
+
+                if (!analysis.reviews || !analysis.reviews.length) {
+                    container.innerHTML =
+                        '<p class="text-gray-500 dark:text-gray-400 text-center py-8">No reviews available for this product.</p>';
+                    return;
+                }
+
+                let reviewsToShow = analysis.reviews;
+
+                // Apply filter
+                if (currentReviewFilter !== "all") {
+                    reviewsToShow = analysis.reviews.filter(
+                        (review) =>
+                            review.sentiment?.toLowerCase() ===
+                            currentReviewFilter,
+                    );
+                }
+
+                // Apply pagination
+                reviewsToShow = reviewsToShow.slice(0, reviewsDisplayed);
+
+                if (reviewsToShow.length === 0) {
+                    container.innerHTML =
+                        '<p class="text-gray-500 dark:text-gray-400 text-center py-8">No reviews match the selected filter.</p>';
+                    return;
+                }
+
+                reviewsToShow.forEach((review, index) => {
+                    const sentimentClass =
+                        review.sentiment?.toLowerCase() || "neutral";
+                    const sentimentIcon =
+                        sentimentClass === "positive"
+                            ? "fa-thumbs-up text-green-500"
+                            : sentimentClass === "negative"
+                              ? "fa-thumbs-down text-red-500"
+                              : "fa-meh text-yellow-500";
+
+                    const reviewCard = document.createElement("div");
+                    reviewCard.className = `review-card ${sentimentClass} mb-6 p-5 rounded-lg bg-gray-50 dark:bg-gray-700/30`;
+                    reviewCard.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-medium">${review.author || "Anonymous"}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">${review.date || "Unknown date"}</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="mr-3">
+                                    ${review.rating ? `<span class="font-medium">${review.rating}</span> <i class="fas fa-star text-yellow-400 ml-1"></i>` : "No rating"}
+                                </div>
+                                <i class="fas ${sentimentIcon} text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-gray-700 dark:text-gray-300">
+                            ${review.text || "No review text available."}
+                        </div>
+                    `;
+                    container.appendChild(reviewCard);
+                });
+
+                // Show/hide load more button
+                const totalFiltered =
+                    currentReviewFilter === "all"
+                        ? analysis.reviews.length
+                        : analysis.reviews.filter(
+                              (r) =>
+                                  r.sentiment?.toLowerCase() ===
+                                  currentReviewFilter,
+                          ).length;
+
+                if (reviewsDisplayed < totalFiltered) {
+                    loadMoreReviews.style.display = "inline-flex";
+                } else {
+                    loadMoreReviews.style.display = "none";
+                }
+            }
+
+            function renderDetailGraphs(analysis) {
+                // Destroy previous charts
+                Object.values(detailCharts).forEach((chart) => {
+                    if (chart) chart.destroy();
+                });
+                detailCharts = {};
+
+                // Bar chart for sentiment distribution
+                const barCtx = document
+                    .getElementById("detailBarChart")
+                    .getContext("2d");
+                const sentimentBreakdown =
+                    analysis.summary?.sentiment_breakdown || {};
+
+                detailCharts.barChart = new Chart(barCtx, {
+                    type: "bar",
+                    data: {
+                        labels: ["Positive", "Neutral", "Negative"],
+                        datasets: [
+                            {
+                                label: "Number of Reviews",
+                                data: [
+                                    sentimentBreakdown.positive || 0,
+                                    sentimentBreakdown.neutral || 0,
+                                    sentimentBreakdown.negative || 0,
+                                ],
+                                backgroundColor: [
+                                    "#16a34a",
+                                    "#ca8a04",
+                                    "#dc2626",
+                                ],
+                                borderColor: isDarkMode
+                                    ? ["#0f172a", "#0f172a", "#0f172a"]
+                                    : ["#fff", "#fff", "#fff"],
+                                borderWidth: 1,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false,
+                            },
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: isDarkMode ? "#9ca3af" : "#6b7280",
+                                },
+                                grid: {
+                                    color: isDarkMode
+                                        ? "rgba(255, 255, 255, 0.1)"
+                                        : "rgba(0, 0, 0, 0.1)",
+                                },
+                            },
+                            x: {
+                                ticks: {
+                                    color: isDarkMode ? "#9ca3af" : "#6b7280",
+                                },
+                                grid: {
+                                    display: false,
+                                },
+                            },
+                        },
+                    },
+                });
+
+                // Rating vs Sentiment chart
+                const ratingCtx = document
+                    .getElementById("ratingVsSentimentChart")
+                    .getContext("2d");
+                const ratingData = {
+                    1: { positive: 0, neutral: 0, negative: 0 },
+                    2: { positive: 0, neutral: 0, negative: 0 },
+                    3: { positive: 0, neutral: 0, negative: 0 },
+                    4: { positive: 0, neutral: 0, negative: 0 },
+                    5: { positive: 0, neutral: 0, negative: 0 },
+                };
+
+                if (analysis.reviews && analysis.reviews.length) {
+                    analysis.reviews.forEach((review) => {
+                        const rating = Math.floor(
+                            parseFloat(review.rating) || 0,
+                        );
+                        const sentiment =
+                            review.sentiment?.toLowerCase() || "neutral";
+
+                        if (
+                            rating >= 1 &&
+                            rating <= 5 &&
+                            (sentiment === "positive" ||
+                                sentiment === "neutral" ||
+                                sentiment === "negative")
+                        ) {
+                            ratingData[rating][sentiment]++;
+                        }
+                    });
+                }
+
+                detailCharts.ratingChart = new Chart(ratingCtx, {
+                    type: "bar",
+                    data: {
+                        labels: ["1★", "2★", "3★", "4★", "5★"],
+                        datasets: [
+                            {
+                                label: "Positive",
+                                data: [
+                                    ratingData[1].positive,
+                                    ratingData[2].positive,
+                                    ratingData[3].positive,
+                                    ratingData[4].positive,
+                                    ratingData[5].positive,
+                                ],
+                                backgroundColor: "#16a34a",
+                            },
+                            {
+                                label: "Neutral",
+                                data: [
+                                    ratingData[1].neutral,
+                                    ratingData[2].neutral,
+                                    ratingData[3].neutral,
+                                    ratingData[4].neutral,
+                                    ratingData[5].neutral,
+                                ],
+                                backgroundColor: "#ca8a04",
+                            },
+                            {
+                                label: "Negative",
+                                data: [
+                                    ratingData[1].negative,
+                                    ratingData[2].negative,
+                                    ratingData[3].negative,
+                                    ratingData[4].negative,
+                                    ratingData[5].negative,
+                                ],
+                                backgroundColor: "#dc2626",
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: "bottom",
+                                labels: {
+                                    color: isDarkMode ? "#9ca3af" : "#6b7280",
+                                },
+                            },
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                stacked: false,
+                                ticks: {
+                                    color: isDarkMode ? "#9ca3af" : "#6b7280",
+                                },
+                                grid: {
+                                    color: isDarkMode
+                                        ? "rgba(255, 255, 255, 0.1)"
+                                        : "rgba(0, 0, 0, 0.1)",
+                                },
+                            },
+                            x: {
+                                stacked: false,
+                                ticks: {
+                                    color: isDarkMode ? "#9ca3af" : "#6b7280",
+                                },
+                                grid: {
+                                    display: false,
+                                },
+                            },
+                        },
+                    },
+                });
+
+                // Review length analysis
+                const lengthCtx = document
+                    .getElementById("reviewLengthChart")
+                    .getContext("2d");
+                const lengthData = { positive: [], neutral: [], negative: [] };
+
+                if (analysis.reviews && analysis.reviews.length) {
+                    analysis.reviews.forEach((review) => {
+                        const sentiment =
+                            review.sentiment?.toLowerCase() || "neutral";
+                        const length = review.text
+                            ? review.text.split(/\s+/).length
+                            : 0;
+
+                        if (
+                            sentiment === "positive" ||
+                            sentiment === "neutral" ||
+                            sentiment === "negative"
+                        ) {
+                            lengthData[sentiment].push(length);
+                        }
+                    });
+                }
+
+                // Calculate averages
+                const avgPositive = lengthData.positive.length
+                    ? (
+                          lengthData.positive.reduce((a, b) => a + b, 0) /
+                          lengthData.positive.length
+                      ).toFixed(0)
+                    : 0;
+                const avgNeutral = lengthData.neutral.length
+                    ? (
+                          lengthData.neutral.reduce((a, b) => a + b, 0) /
+                          lengthData.neutral.length
+                      ).toFixed(0)
+                    : 0;
+                const avgNegative = lengthData.negative.length
+                    ? (
+                          lengthData.negative.reduce((a, b) => a + b, 0) /
+                          lengthData.negative.length
+                      ).toFixed(0)
+                    : 0;
+
+                detailCharts.lengthChart = new Chart(lengthCtx, {
+                    type: "bar",
+                    data: {
+                        labels: ["Positive", "Neutral", "Negative"],
+                        datasets: [
+                            {
+                                label: "Average Words per Review",
+                                data: [avgPositive, avgNeutral, avgNegative],
+                                backgroundColor: [
+                                    "#16a34a",
+                                    "#ca8a04",
+                                    "#dc2626",
+                                ],
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false,
+                            },
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: isDarkMode ? "#9ca3af" : "#6b7280",
+                                },
+                                grid: {
+                                    color: isDarkMode
+                                        ? "rgba(255, 255, 255, 0.1)"
+                                        : "rgba(0, 0, 0, 0.1)",
+                                },
+                            },
+                            x: {
+                                ticks: {
+                                    color: isDarkMode ? "#9ca3af" : "#6b7280",
+                                },
+                                grid: {
+                                    display: false,
+                                },
+                            },
+                        },
+                    },
+                });
+
+                // Sentiment timeline
+                const timelineContainer =
+                    document.getElementById("sentimentTimeline");
+                timelineContainer.innerHTML = "";
+
+                if (analysis.reviews && analysis.reviews.length) {
+                    // Sort reviews by date
+                    const sortedReviews = [...analysis.reviews]
+                        .sort((a, b) => {
+                            return new Date(a.date) - new Date(b.date);
+                        })
+                        .slice(0, 10); // Show only first 10 for timeline
+
+                    sortedReviews.forEach((review) => {
+                        const sentiment =
+                            review.sentiment?.toLowerCase() || "neutral";
+                        const date = review.date || "Unknown date";
+                        const textPreview = review.text
+                            ? review.text.length > 100
+                                ? review.text.substring(0, 100) + "..."
+                                : review.text
+                            : "No review text";
+
+                        const timelineItem = document.createElement("div");
+                        timelineItem.className = `sentiment-timeline-item ${sentiment}`;
+                        timelineItem.innerHTML = `
+                            <div class="text-sm font-medium">${date}</div>
+                            <div class="mt-1 text-gray-600 dark:text-gray-300">${textPreview}</div>
+                        `;
+                        timelineContainer.appendChild(timelineItem);
+                    });
+                } else {
+                    timelineContainer.innerHTML =
+                        '<p class="text-gray-500 dark:text-gray-400">No review data available for timeline</p>';
                 }
             }
 

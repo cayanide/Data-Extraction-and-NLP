@@ -113,19 +113,28 @@ from urllib.parse import unquote
 
 @app.route('/product-details/<path:product_name>')
 def get_product_details(product_name):
-    # Decode URL-encoded product name
     decoded_name = unquote(product_name)
-
-    # Sanitize for filename matching
     safe_name = sanitize_filename(decoded_name)
     json_path = os.path.join(ARTICLES_FOLDER, f'{safe_name}.json')
 
+    print(f"[DEBUG] Request for product: {product_name}, decoded: {decoded_name}, safe_name: {safe_name}, json_path: {json_path}")
+
     if os.path.exists(json_path):
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        return jsonify(data)
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            # Add word cloud URL for other tabs (optional)
+            wordcloud_filename = f'{safe_name}.png'
+            wordcloud_path = os.path.join(app.config['WORDCLOUD_FOLDER'], wordcloud_filename)
+            data['wordcloud_url'] = f"/static/wordclouds/{wordcloud_filename}" if os.path.exists(wordcloud_path) else None
+            print(f"[DEBUG] Loaded product data for {safe_name}: {data['summary']}")
+            return jsonify(data)
+        except Exception as e:
+            print(f"[ERROR] Failed to load JSON file {json_path}: {e}")
+            return jsonify({"error": f"Failed to load product data: {str(e)}"}), 500
     else:
-        return jsonify({"error": "Product not found"}), 404
+        print(f"[ERROR] JSON file not found: {json_path}")
+        return jsonify({"error": "Product not found", "wordcloud_url": None}), 404
 
 
 def preprocess_text(text):
@@ -301,11 +310,19 @@ def extract_products(input_file):
                 text_blob = ' '.join(r["text"] for r in reviews_data["reviews"])
                 try:
                     wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text_blob)
+
+                    # Save with URL_ID naming
                     wordcloud.to_file(os.path.join(WORDCLOUD_FOLDER, f'{safe_id}.png'))
+
+                    # Also save with product_id naming if available
+                    product_id = reviews_data.get("product_id")
+                    if product_id and product_id != "unknown":
+                        wordcloud.to_file(os.path.join(WORDCLOUD_FOLDER, f'{product_id}.png'))
                 except ValueError as e:
                     print(f"[WARNING] Failed to generate word cloud for {url_id}: {e}")
             else:
                 print(f"[WARNING] Skipping word cloud generation for {url_id}: No reviews available")
+
 
 def analyze_product(json_path):
     try:
@@ -436,9 +453,29 @@ def get_results():
 
 @app.route('/static/wordclouds/<filename>')
 def serve_wordcloud(filename):
-    try:
+    wordcloud_path = os.path.join(app.config['WORDCLOUD_FOLDER'], filename)
+
+    # First try to serve the exact filename
+    if os.path.exists(wordcloud_path):
         return send_from_directory(app.config['WORDCLOUD_FOLDER'], filename)
-    except FileNotFoundError:
+
+    # If not found, try alternative naming patterns
+    try:
+        # Check if this is a product_id looking for URL_ID version
+        if re.match(r'^[A-Z0-9]{10}$', filename.split('.')[0]):  # Amazon ASIN pattern
+            # Look for matching URL_ID version
+            results_file = os.path.join(app.config['OUTPUT_FOLDER'], 'analysis_results.xlsx')
+            if os.path.exists(results_file):
+                df = pd.read_excel(results_file)
+                product_row = df[df['URL_ID'] == filename.split('.')[0]]
+                if not product_row.empty:
+                    url_id = product_row.iloc[0]['URL_ID']
+                    safe_id = sanitize_filename(url_id)
+                    alt_filename = f'{safe_id}.png'
+                    if os.path.exists(os.path.join(app.config['WORDCLOUD_FOLDER'], alt_filename)):
+                        return send_from_directory(app.config['WORDCLOUD_FOLDER'], alt_filename)
+
+        # Default fallback
         default_path = os.path.join(app.config['WORDCLOUD_FOLDER'], 'default.png')
         if os.path.exists(default_path):
             print(f"[INFO] Serving default word cloud for {filename}")
@@ -446,6 +483,9 @@ def serve_wordcloud(filename):
         else:
             print(f"[ERROR] Default word cloud not found: {default_path}")
             return jsonify({"error": f"Word cloud not found for {filename} and default.png is missing"}), 404
+    except Exception as e:
+        print(f"[ERROR] Failed to serve word cloud: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8050)
